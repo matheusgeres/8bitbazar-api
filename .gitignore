@@ -42,3 +42,4 @@ out/
 ### Application ###
 *.log
 application-local.yml
+data/

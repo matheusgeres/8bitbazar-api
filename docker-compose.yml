@@ -10,7 +10,7 @@ services:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: eightbitbazar
     volumes:
-      - mysql_data:/var/lib/mysql
+      - ./data/mysql:/var/lib/mysql
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 10s
@@ -42,7 +42,7 @@ services:
     ports:
       - "9200:9200"
     volumes:
-      - elasticsearch_data:/usr/share/elasticsearch/data
+      - ./data/elasticsearch:/usr/share/elasticsearch/data
 
   minio:
     image: minio/minio
@@ -55,7 +55,7 @@ services:
       MINIO_ROOT_USER: minioadmin
       MINIO_ROOT_PASSWORD: minioadmin
     volumes:
-      - minio_data:/data
+      - ./data/minio:/data
 
   rabbitmq:
     image: rabbitmq:3-management
@@ -67,10 +67,4 @@ services:
       RABBITMQ_DEFAULT_USER: guest
       RABBITMQ_DEFAULT_PASS: guest
     volumes:
-      - rabbitmq_data:/var/lib/rabbitmq
-
-volumes:
-  mysql_data:
-  elasticsearch_data:
-  minio_data:
-  rabbitmq_data:
+      - ./data/rabbitmq:/var/lib/rabbitmq
