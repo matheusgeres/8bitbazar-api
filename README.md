@@ -109,6 +109,13 @@ A API estará disponível em `http://localhost:8080`
 - **RabbitMQ Management**: http://localhost:15672 (guest/guest)
 - **Elasticsearch**: http://localhost:9200
 
+### 4. Monitoramento
+
+- **Grafana**: http://localhost:3001 (admin/admin)
+- **Prometheus**: http://localhost:9090
+- **Métricas da API**: http://localhost:8080/actuator/prometheus
+- **Health Check**: http://localhost:8080/actuator/health
+
 ## 📡 API Endpoints
 
 ### OAuth2 (Authorization Server)
