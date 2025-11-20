@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.25.xsd">
+
+    <changeSet id="008-create-price-history-table" author="eightbitbazar">
+        <createTable tableName="price_history">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="listing_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="old_price" type="DECIMAL(10,2)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="new_price" type="DECIMAL(10,2)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint
+            baseTableName="price_history"
+            baseColumnNames="listing_id"
+            constraintName="fk_price_history_listing"
+            referencedTableName="listings"
+            referencedColumnNames="id"/>
+
+        <createIndex tableName="price_history" indexName="idx_price_history_listing_id">
+            <column name="listing_id"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

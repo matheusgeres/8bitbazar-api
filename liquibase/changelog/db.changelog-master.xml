@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.25.xsd">
+
+    <include file="changes/001-create-user-table.xml" relativeToChangelogFile="true"/>
+    <include file="changes/002-create-platform-table.xml" relativeToChangelogFile="true"/>
+    <include file="changes/003-create-manufacturer-table.xml" relativeToChangelogFile="true"/>
+    <include file="changes/004-create-listing-table.xml" relativeToChangelogFile="true"/>
+    <include file="changes/005-create-listing-image-table.xml" relativeToChangelogFile="true"/>
+    <include file="changes/006-create-bid-table.xml" relativeToChangelogFile="true"/>
+    <include file="changes/007-create-purchase-table.xml" relativeToChangelogFile="true"/>
+    <include file="changes/008-create-price-history-table.xml" relativeToChangelogFile="true"/>
+    <include file="changes/009-create-oauth2-tables.xml" relativeToChangelogFile="true"/>
+
+</databaseChangeLog>

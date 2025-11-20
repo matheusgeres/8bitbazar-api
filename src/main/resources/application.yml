@@ -1,0 +1,42 @@
+spring:
+  application:
+    name: eightbitbazar
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/eightbitbazar?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+    username: root
+    password: root
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+        format_sql: true
+
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+
+  elasticsearch:
+    uris: http://localhost:9200
+
+  security:
+    oauth2:
+      authorizationserver:
+        issuer: http://localhost:8080
+
+# MinIO Configuration
+minio:
+  endpoint: http://localhost:9000
+  access-key: minioadmin
+  secret-key: minioadmin
+  bucket: eightbitbazar-images
+
+server:
+  port: 8080

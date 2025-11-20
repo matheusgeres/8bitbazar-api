@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.25.xsd">
+
+    <changeSet id="004-create-listing-table" author="eightbitbazar">
+        <createTable tableName="listings">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="seller_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="TEXT"/>
+            <column name="platform_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="manufacturer_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="item_condition" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="quantity" type="INT" defaultValueNumeric="1">
+                <constraints nullable="false"/>
+            </column>
+            <column name="type" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="price" type="DECIMAL(10,2)"/>
+            <column name="starting_price" type="DECIMAL(10,2)"/>
+            <column name="buy_now_price" type="DECIMAL(10,2)"/>
+            <column name="auction_end_date" type="TIMESTAMP"/>
+            <column name="cash_discount_percent" type="DECIMAL(5,2)"/>
+            <column name="status" type="VARCHAR(50)" defaultValue="ACTIVE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="deleted_at" type="TIMESTAMP"/>
+        </createTable>
+
+        <addForeignKeyConstraint
+            baseTableName="listings"
+            baseColumnNames="seller_id"
+            constraintName="fk_listings_seller"
+            referencedTableName="users"
+            referencedColumnNames="id"/>
+
+        <addForeignKeyConstraint
+            baseTableName="listings"
+            baseColumnNames="platform_id"
+            constraintName="fk_listings_platform"
+            referencedTableName="platforms"
+            referencedColumnNames="id"/>
+
+        <addForeignKeyConstraint
+            baseTableName="listings"
+            baseColumnNames="manufacturer_id"
+            constraintName="fk_listings_manufacturer"
+            referencedTableName="manufacturers"
+            referencedColumnNames="id"/>
+
+        <createIndex tableName="listings" indexName="idx_listings_seller_id">
+            <column name="seller_id"/>
+        </createIndex>
+
+        <createIndex tableName="listings" indexName="idx_listings_status">
+            <column name="status"/>
+        </createIndex>
+
+        <createIndex tableName="listings" indexName="idx_listings_type">
+            <column name="type"/>
+        </createIndex>
+
+        <createIndex tableName="listings" indexName="idx_listings_deleted_at">
+            <column name="deleted_at"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

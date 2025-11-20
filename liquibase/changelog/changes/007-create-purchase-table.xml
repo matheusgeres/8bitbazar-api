@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.25.xsd">
+
+    <changeSet id="007-create-purchase-table" author="eightbitbazar">
+        <createTable tableName="purchases">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="listing_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="buyer_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="seller_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="amount" type="DECIMAL(10,2)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="type" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="payment_method" type="VARCHAR(50)"/>
+            <column name="discount_applied" type="DECIMAL(10,2)" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="final_amount" type="DECIMAL(10,2)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="VARCHAR(50)" defaultValue="PENDING">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint
+            baseTableName="purchases"
+            baseColumnNames="listing_id"
+            constraintName="fk_purchases_listing"
+            referencedTableName="listings"
+            referencedColumnNames="id"/>
+
+        <addForeignKeyConstraint
+            baseTableName="purchases"
+            baseColumnNames="buyer_id"
+            constraintName="fk_purchases_buyer"
+            referencedTableName="users"
+            referencedColumnNames="id"/>
+
+        <addForeignKeyConstraint
+            baseTableName="purchases"
+            baseColumnNames="seller_id"
+            constraintName="fk_purchases_seller"
+            referencedTableName="users"
+            referencedColumnNames="id"/>
+
+        <createIndex tableName="purchases" indexName="idx_purchases_buyer_id">
+            <column name="buyer_id"/>
+        </createIndex>
+
+        <createIndex tableName="purchases" indexName="idx_purchases_seller_id">
+            <column name="seller_id"/>
+        </createIndex>
+
+        <createIndex tableName="purchases" indexName="idx_purchases_listing_id">
+            <column name="listing_id"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>
