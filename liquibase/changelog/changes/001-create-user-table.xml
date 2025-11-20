@@ -27,7 +27,7 @@
             <column name="role" type="VARCHAR(20)" defaultValue="USER">
                 <constraints nullable="false"/>
             </column>
-            <column name="is_seller" type="BOOLEAN" defaultValueBoolean="false">
+            <column name="is_seller" type="BIT(1)" defaultValueBoolean="false">
                 <constraints nullable="false"/>
             </column>
             <column name="address_street" type="VARCHAR(255)"/>
