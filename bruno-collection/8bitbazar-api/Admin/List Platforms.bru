@@ -1,0 +1,15 @@
+meta {
+  name: List Platforms
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/admin/platforms
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}

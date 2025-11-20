@@ -1,0 +1,34 @@
+meta {
+  name: Create Auction
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/listings
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "name": "Nintendo 64 Console",
+    "description": "Console completo com 2 controles",
+    "platformId": 1,
+    "manufacturerId": 1,
+    "condition": "COMPLETE",
+    "quantity": 1,
+    "type": "AUCTION",
+    "startingPrice": 200.00,
+    "buyNowPrice": 500.00,
+    "auctionEndDate": "2025-12-01T23:59:59"
+  }
+}

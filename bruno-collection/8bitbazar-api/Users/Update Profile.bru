@@ -1,0 +1,34 @@
+meta {
+  name: Update Profile
+  type: http
+  seq: 2
+}
+
+put {
+  url: {{baseUrl}}/users/me
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "nickname": "novo_nickname",
+    "fullName": "Novo Nome Completo",
+    "phone": "11988888888",
+    "whatsappLink": "https://wa.me/5511988888888",
+    "address": {
+      "street": "Rua Exemplo, 123",
+      "city": "São Paulo",
+      "state": "SP",
+      "zip": "01234-567"
+    }
+  }
+}

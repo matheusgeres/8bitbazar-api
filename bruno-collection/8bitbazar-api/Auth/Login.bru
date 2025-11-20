@@ -5,7 +5,7 @@ meta {
 }
 
 post {
-  url: http://localhost:8080/auth/login
+  url: {{baseUrl}}/auth/login
   body: json
   auth: none
 }
@@ -18,5 +18,11 @@ body:json {
   {
     "email": "admin@8bitbazar.com",
     "password": "Admin@123"
+  }
+}
+
+script:post-response {
+  if (res.status === 200) {
+    bru.setVar("token", res.body.accessToken);
   }
 }

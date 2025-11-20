@@ -1,0 +1,25 @@
+meta {
+  name: Search Listings
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/listings?page=0&size=20&sort=recent
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+params:query {
+  page: 0
+  size: 20
+  sort: recent
+  ~search:
+  ~type:
+  ~platformId:
+  ~manufacturerId:
+}

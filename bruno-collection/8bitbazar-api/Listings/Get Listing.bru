@@ -1,0 +1,15 @@
+meta {
+  name: Get Listing
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/listings/1
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}

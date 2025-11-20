@@ -1,0 +1,25 @@
+meta {
+  name: Create Manufacturer
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/admin/manufacturers
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "name": "Nintendo"
+  }
+}

@@ -1,0 +1,25 @@
+meta {
+  name: Place Bid
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{baseUrl}}/listings/1/bids
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "amount": 250.00
+  }
+}

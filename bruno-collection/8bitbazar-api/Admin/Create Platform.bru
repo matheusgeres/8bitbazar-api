@@ -1,0 +1,26 @@
+meta {
+  name: Create Platform
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/admin/platforms
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "name": "Super Nintendo",
+    "shortName": "SNES"
+  }
+}
