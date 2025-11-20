@@ -32,6 +32,9 @@ public class ElasticsearchListingSearchAdapter implements ListingSearchRepositor
         // Only active listings
         boolQuery.must(QueryBuilders.term(t -> t.field("status").value("ACTIVE")));
 
+        // Exclude soft deleted listings
+        boolQuery.mustNot(QueryBuilders.exists(e -> e.field("deletedAt")));
+
         // Full text search on name and description
         if (criteria.query() != null && !criteria.query().isBlank()) {
             boolQuery.must(QueryBuilders.multiMatch(m -> m
@@ -84,26 +87,26 @@ public class ElasticsearchListingSearchAdapter implements ListingSearchRepositor
 
     private ListingSearchResult toSearchResult(ListingDocument doc) {
         return new ListingSearchResult(
-            doc.getId(),
-            doc.getName(),
-            doc.getDescription(),
-            doc.getPlatformId(),
-            doc.getPlatformName(),
-            doc.getManufacturerId(),
-            doc.getManufacturerName(),
-            doc.getCondition(),
-            doc.getQuantity(),
-            doc.getType(),
-            doc.getPrice(),
-            doc.getStartingPrice(),
-            doc.getBuyNowPrice(),
-            doc.getAuctionEndDate(),
-            doc.getCashDiscountPercent(),
-            doc.getStatus(),
-            doc.getSellerId(),
-            doc.getSellerNickname(),
+            doc.id(),
+            doc.name(),
+            doc.description(),
+            doc.platformId(),
+            doc.platformName(),
+            doc.manufacturerId(),
+            doc.manufacturerName(),
+            doc.condition(),
+            doc.quantity(),
+            doc.type(),
+            doc.price(),
+            doc.startingPrice(),
+            doc.buyNowPrice(),
+            doc.auctionEndDate(),
+            doc.cashDiscountPercent(),
+            doc.status(),
+            doc.sellerId(),
+            doc.sellerNickname(),
             List.of(), // Images loaded separately
-            doc.getCreatedAt()
+            doc.createdAt()
         );
     }
 
@@ -127,7 +130,8 @@ public class ElasticsearchListingSearchAdapter implements ListingSearchRepositor
             result.status(),
             result.sellerId(),
             result.sellerNickname(),
-            result.createdAt()
+            result.createdAt(),
+            null // deletedAt - new listings are not deleted
         );
     }
 }

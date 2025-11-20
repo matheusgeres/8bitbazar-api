@@ -55,8 +55,8 @@ public class UseCaseConfig {
     }
 
     @Bean
-    public DeleteListingUseCase deleteListingUseCase(ListingRepository listingRepository) {
-        return new DeleteListing(listingRepository);
+    public DeleteListingUseCase deleteListingUseCase(ListingRepository listingRepository, EventPublisher eventPublisher) {
+        return new DeleteListing(listingRepository, eventPublisher);
     }
 
     @Bean
@@ -70,7 +70,6 @@ public class UseCaseConfig {
     }
 
     @Bean
-    @ConditionalOnMissingBean(SearchListingsUseCase.class)
     public SearchListingsUseCase searchListingsUseCase(
         ListingRepository listingRepository,
         UserRepository userRepository,
