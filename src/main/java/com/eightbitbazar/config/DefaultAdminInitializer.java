@@ -5,18 +5,17 @@ import com.eightbitbazar.application.port.out.UserRepository;
 import com.eightbitbazar.domain.user.Address;
 import com.eightbitbazar.domain.user.Role;
 import com.eightbitbazar.domain.user.User;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 
+@Slf4j
 @Component
 public class DefaultAdminInitializer implements ApplicationRunner {
 
-    private static final Logger log = LoggerFactory.getLogger(DefaultAdminInitializer.class);
     private static final String DEFAULT_EMAIL = "admin@8bitbazar.com";
     private static final String DEFAULT_NICKNAME = "admin";
     private static final String DEFAULT_FULL_NAME = "Administrador 8BitBazar";
