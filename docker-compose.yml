@@ -7,6 +7,8 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: eightbitbazar
+      MYSQL_USER: eightbitbazar_app
+      MYSQL_PASSWORD: eightbitbazar_app
     volumes:
       - mysql_data:/var/lib/mysql
     healthcheck:
@@ -75,3 +77,7 @@ volumes:
   elasticsearch_data:
   minio_data:
   rabbitmq_data:
+
+networks:
+  app-network:
+    driver: bridge
