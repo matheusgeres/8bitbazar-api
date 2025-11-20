@@ -78,9 +78,24 @@ Isso irá iniciar:
 - Elasticsearch (porta 9200)
 - MinIO (portas 9000/9001)
 - RabbitMQ (portas 5672/15672)
+- Prometheus (porta 9090)
+- Grafana (porta 3001)
 - Liquibase (executa migrations e encerra)
 
-### 2. Executar a aplicação
+### 2. Configurar o MinIO
+
+Crie o bucket para armazenamento de imagens:
+
+```bash
+# Via CLI
+podman exec eightbitbazar-minio mc mb /data/eightbitbazar-images
+
+# Ou acesse o console: http://localhost:9001
+# Login: minioadmin / minioadmin
+# Crie o bucket: eightbitbazar-images
+```
+
+### 3. Executar a aplicação
 
 ```bash
 ./gradlew bootRun
