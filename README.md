@@ -104,7 +104,9 @@ A API estará disponível em `http://localhost:8080`
 
 ### Autenticação
 - `POST /auth/register` - Cadastro de usuário
+- `POST /auth/login` - Login (retorna JWT)
 - `POST /auth/forgot-password` - Recuperação de senha (em desenvolvimento)
+- `POST /auth/reset-password` - Resetar senha (em desenvolvimento)
 
 ### Usuário
 - `GET /users/me` - Dados do usuário logado
@@ -115,19 +117,19 @@ A API estará disponível em `http://localhost:8080`
 - `POST /listings` - Criar anúncio
 - `GET /listings` - Listar com filtros
 - `GET /listings/{id}` - Detalhes do anúncio
-- `PATCH /listings/{id}` - Atualizar anúncio
-- `PATCH /listings/{id}/price` - Atualizar preço (promoção)
+- `PATCH /listings/{id}` - Atualizar anúncio *(plano futuro)*
+- `PATCH /listings/{id}/price` - Atualizar preço/promoção *(plano futuro)*
 - `DELETE /listings/{id}` - Excluir anúncio
 - `POST /listings/{id}/images` - Upload de imagens
 
 ### Lances
 - `POST /listings/{id}/bids` - Dar lance
-- `GET /listings/{id}/bids` - Histórico de lances
+- `GET /listings/{id}/bids` - Histórico de lances *(plano futuro)*
 
 ### Compras
 - `POST /listings/{id}/purchase` - Compra direta
-- `GET /users/me/purchases` - Minhas compras
-- `GET /users/me/sales` - Minhas vendas
+- `GET /users/me/purchases` - Minhas compras *(plano futuro)*
+- `GET /users/me/sales` - Minhas vendas *(plano futuro)*
 
 ### Admin
 - `POST /admin/platforms` - Criar plataforma
@@ -158,26 +160,16 @@ A API estará disponível em `http://localhost:8080`
 
 A API utiliza **Spring Authorization Server** com OAuth2/OIDC para autenticação.
 
-### Obter Token (Password Grant)
+### Obter Token (Login)
 ```bash
-curl -X POST http://localhost:8080/oauth2/token \
-  -d "grant_type=password" \
-  -d "username=seu@email.com" \
-  -d "password=suasenha" \
-  -d "client_id=eightbitbazar-web"
+curl -X POST http://localhost:8080/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email": "seu@email.com", "password": "suasenha"}'
 ```
 
 ### Usar Token
 ```
 Authorization: Bearer <access-token>
-```
-
-### Refresh Token
-```bash
-curl -X POST http://localhost:8080/oauth2/token \
-  -d "grant_type=refresh_token" \
-  -d "refresh_token=<refresh-token>" \
-  -d "client_id=eightbitbazar-web"
 ```
 
 ## 🧪 Testes
