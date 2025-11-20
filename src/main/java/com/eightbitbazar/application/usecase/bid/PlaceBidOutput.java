@@ -7,5 +7,6 @@ public record PlaceBidOutput(
     Long id,
     Long listingId,
     BigDecimal amount,
-    LocalDateTime createdAt
+    LocalDateTime createdAt,
+    boolean convertedToPurchase
 ) {}

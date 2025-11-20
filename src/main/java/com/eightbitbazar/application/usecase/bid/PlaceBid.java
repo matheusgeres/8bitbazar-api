@@ -4,28 +4,44 @@ import com.eightbitbazar.application.port.in.PlaceBidUseCase;
 import com.eightbitbazar.application.port.out.BidRepository;
 import com.eightbitbazar.application.port.out.EventPublisher;
 import com.eightbitbazar.application.port.out.ListingRepository;
+import com.eightbitbazar.application.port.out.PurchaseRepository;
 import com.eightbitbazar.domain.event.BidPlacedEvent;
+import com.eightbitbazar.domain.event.ListingSoldEvent;
+import com.eightbitbazar.domain.event.PurchaseCompletedEvent;
 import com.eightbitbazar.domain.bid.Bid;
 import com.eightbitbazar.domain.exception.BusinessException;
 import com.eightbitbazar.domain.exception.NotFoundException;
 import com.eightbitbazar.domain.listing.Listing;
 import com.eightbitbazar.domain.listing.ListingId;
+import com.eightbitbazar.domain.listing.ListingStatus;
+import com.eightbitbazar.domain.purchase.PaymentMethod;
+import com.eightbitbazar.domain.purchase.Purchase;
+import com.eightbitbazar.domain.purchase.PurchaseStatus;
+import com.eightbitbazar.domain.purchase.PurchaseType;
 import com.eightbitbazar.domain.user.UserId;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+@Transactional
 public class PlaceBid implements PlaceBidUseCase {
 
     private static final BigDecimal MIN_INCREMENT = new BigDecimal("1.00");
 
     private final BidRepository bidRepository;
     private final ListingRepository listingRepository;
+    private final PurchaseRepository purchaseRepository;
     private final EventPublisher eventPublisher;
 
-    public PlaceBid(BidRepository bidRepository, ListingRepository listingRepository, EventPublisher eventPublisher) {
+    public PlaceBid(
+            BidRepository bidRepository,
+            ListingRepository listingRepository,
+            PurchaseRepository purchaseRepository,
+            EventPublisher eventPublisher) {
         this.bidRepository = bidRepository;
         this.listingRepository = listingRepository;
+        this.purchaseRepository = purchaseRepository;
         this.eventPublisher = eventPublisher;
     }
 
@@ -61,6 +77,11 @@ public class PlaceBid implements PlaceBidUseCase {
             throw new BusinessException("Bid must be at least " + minimumBid);
         }
 
+        // Check if bid meets or exceeds buy now price - convert to direct purchase
+        if (listing.buyNowPrice() != null && input.amount().compareTo(listing.buyNowPrice()) >= 0) {
+            return convertToPurchase(listing, userId, listingId);
+        }
+
         Bid bid = new Bid(
             null,
             listingId,
@@ -82,7 +103,56 @@ public class PlaceBid implements PlaceBidUseCase {
             savedBid.id(),
             savedBid.listingId().value(),
             savedBid.amount(),
-            savedBid.createdAt()
+            savedBid.createdAt(),
+            false
+        );
+    }
+
+    private PlaceBidOutput convertToPurchase(Listing listing, UserId buyerId, ListingId listingId) {
+        BigDecimal price = listing.buyNowPrice();
+
+        Purchase purchase = new Purchase(
+            null,
+            listingId,
+            buyerId,
+            listing.sellerId(),
+            price,
+            PurchaseType.AUCTION_WIN,
+            PaymentMethod.OTHER,
+            BigDecimal.ZERO,
+            price,
+            PurchaseStatus.PENDING,
+            LocalDateTime.now()
+        );
+
+        Purchase savedPurchase = purchaseRepository.save(purchase);
+
+        // Mark listing as sold
+        Listing soldListing = listing.withStatus(ListingStatus.SOLD).withQuantity(0);
+        listingRepository.save(soldListing);
+
+        // Publish events
+        eventPublisher.publish(new ListingSoldEvent(
+            listingId.value(),
+            buyerId.value(),
+            listing.sellerId().value()
+        ));
+
+        eventPublisher.publish(new PurchaseCompletedEvent(
+            savedPurchase.id(),
+            savedPurchase.listingId().value(),
+            savedPurchase.buyerId().value(),
+            savedPurchase.sellerId().value(),
+            savedPurchase.finalAmount(),
+            savedPurchase.paymentMethod().name()
+        ));
+
+        return new PlaceBidOutput(
+            savedPurchase.id(),
+            savedPurchase.listingId().value(),
+            savedPurchase.finalAmount(),
+            savedPurchase.createdAt(),
+            true
         );
     }
 }

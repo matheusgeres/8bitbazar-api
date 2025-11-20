@@ -104,9 +104,10 @@ public class UseCaseConfig {
     public PlaceBidUseCase placeBidUseCase(
         BidRepository bidRepository,
         ListingRepository listingRepository,
+        PurchaseRepository purchaseRepository,
         EventPublisher eventPublisher
     ) {
-        return new PlaceBid(bidRepository, listingRepository, eventPublisher);
+        return new PlaceBid(bidRepository, listingRepository, purchaseRepository, eventPublisher);
     }
 
     // Purchase Use Cases
