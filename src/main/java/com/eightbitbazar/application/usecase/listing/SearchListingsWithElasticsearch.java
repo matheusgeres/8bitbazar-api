@@ -12,6 +12,9 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 
 public class SearchListingsWithElasticsearch implements SearchListingsUseCase {
@@ -59,12 +62,12 @@ public class SearchListingsWithElasticsearch implements SearchListingsUseCase {
             result.type(),
             result.price(),
             result.startingPrice(),
-            result.auctionEndDate(),
+            toLocalDateTime(result.auctionEndDate()),
             result.cashDiscountPercent(),
             result.status(),
             imageUrls,
             result.sellerNickname(),
-            result.createdAt()
+            toLocalDateTime(result.createdAt())
         );
     }
 
@@ -78,5 +81,12 @@ public class SearchListingsWithElasticsearch implements SearchListingsUseCase {
             case "ending_soon" -> Sort.by(Sort.Direction.ASC, "auctionEndDate");
             default -> Sort.by(Sort.Direction.DESC, "createdAt");
         };
+    }
+
+    private LocalDateTime toLocalDateTime(Instant instant) {
+        if (instant == null) {
+            return null;
+        }
+        return LocalDateTime.ofInstant(instant, ZoneOffset.UTC);
     }
 }
