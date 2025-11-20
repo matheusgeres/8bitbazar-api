@@ -4,6 +4,7 @@ import com.eightbitbazar.application.port.in.DirectPurchaseUseCase;
 import com.eightbitbazar.application.port.out.ListingRepository;
 import com.eightbitbazar.application.port.out.PurchaseRepository;
 import com.eightbitbazar.application.port.out.EventPublisher;
+import com.eightbitbazar.domain.event.ListingSoldEvent;
 import com.eightbitbazar.domain.event.PurchaseCompletedEvent;
 import com.eightbitbazar.domain.exception.BusinessException;
 import com.eightbitbazar.domain.exception.NotFoundException;
@@ -15,10 +16,13 @@ import com.eightbitbazar.domain.purchase.Purchase;
 import com.eightbitbazar.domain.purchase.PurchaseStatus;
 import com.eightbitbazar.domain.purchase.PurchaseType;
 import com.eightbitbazar.domain.user.UserId;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 
+@Transactional
 public class DirectPurchase implements DirectPurchaseUseCase {
 
     private final PurchaseRepository purchaseRepository;
@@ -70,7 +74,7 @@ public class DirectPurchase implements DirectPurchaseUseCase {
         BigDecimal finalAmount = price;
 
         if ((paymentMethod == PaymentMethod.PIX || paymentMethod == PaymentMethod.CASH) && listing.hasCashDiscount()) {
-            discountApplied = price.multiply(listing.cashDiscountPercent()).divide(BigDecimal.valueOf(100));
+            discountApplied = price.multiply(listing.cashDiscountPercent()).divide(BigDecimal.valueOf(100), 2, RoundingMode.FLOOR);
             finalAmount = price.subtract(discountApplied);
         }
 
@@ -92,10 +96,19 @@ public class DirectPurchase implements DirectPurchaseUseCase {
 
         // Update listing quantity
         int newQuantity = listing.quantity() - 1;
-        Listing updatedListing = newQuantity <= 0
-            ? listing.withQuantity(0).withStatus(ListingStatus.SOLD)
+        boolean isSold = newQuantity <= 0;
+        Listing updatedListing = isSold
+            ? listing.withStatus(ListingStatus.SOLD).withQuantity(0)
             : listing.withQuantity(newQuantity);
         listingRepository.save(updatedListing);
+
+        if (isSold) {
+            eventPublisher.publish(new ListingSoldEvent(
+                listingId.value(),
+                buyerId.value(),
+                listing.sellerId().value()
+            ));
+        }
 
         eventPublisher.publish(new PurchaseCompletedEvent(
             savedPurchase.id(),

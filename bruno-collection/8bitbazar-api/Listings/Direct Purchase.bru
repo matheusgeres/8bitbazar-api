@@ -5,17 +5,17 @@ meta {
 }
 
 post {
-  url: {{baseUrl}}/listings/1/purchase
+  url: {{baseUrl}}/listings/2/purchase
   body: json
   auth: bearer
 }
 
-auth:bearer {
-  token: {{token}}
-}
-
 headers {
   Content-Type: application/json
+}
+
+auth:bearer {
+  token: {{token}}
 }
 
 body:json {

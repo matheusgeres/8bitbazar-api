@@ -3,6 +3,7 @@ package com.eightbitbazar.domain.listing;
 import com.eightbitbazar.domain.user.UserId;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -46,7 +47,7 @@ public record Listing(
         if (type == null) {
             throw new IllegalArgumentException("Type is required");
         }
-        if (quantity <= 0) {
+        if (quantity < 0 || (quantity == 0 && status != ListingStatus.SOLD)) {
             throw new IllegalArgumentException("Quantity must be positive");
         }
         if (status == null) {
@@ -89,7 +90,7 @@ public record Listing(
         if (!hasCashDiscount() || price == null) {
             return price;
         }
-        BigDecimal discount = price.multiply(cashDiscountPercent).divide(BigDecimal.valueOf(100));
+        BigDecimal discount = price.multiply(cashDiscountPercent).divide(BigDecimal.valueOf(100), 2, RoundingMode.FLOOR);
         return price.subtract(discount);
     }
 

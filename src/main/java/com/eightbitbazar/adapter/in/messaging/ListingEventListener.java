@@ -9,12 +9,15 @@ import com.eightbitbazar.application.port.out.UserRepository;
 import com.eightbitbazar.config.RabbitMQConfig;
 import com.eightbitbazar.domain.event.ListingCreatedEvent;
 import com.eightbitbazar.domain.event.ListingDeletedEvent;
+import com.eightbitbazar.domain.event.ListingSoldEvent;
 import com.eightbitbazar.domain.listing.Listing;
 import com.eightbitbazar.domain.listing.ListingId;
 import com.eightbitbazar.domain.manufacturer.Manufacturer;
 import com.eightbitbazar.domain.platform.Platform;
 import com.eightbitbazar.domain.user.User;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,78 +34,94 @@ public class ListingEventListener {
     private final UserRepository userRepository;
     private final PlatformRepository platformRepository;
     private final ManufacturerRepository manufacturerRepository;
+    private final ObjectMapper objectMapper;
 
     public ListingEventListener(
             ListingSearchRepository listingSearchRepository,
             ListingRepository listingRepository,
             UserRepository userRepository,
             PlatformRepository platformRepository,
-            ManufacturerRepository manufacturerRepository) {
+            ManufacturerRepository manufacturerRepository,
+            ObjectMapper objectMapper) {
         this.listingSearchRepository = listingSearchRepository;
         this.listingRepository = listingRepository;
         this.userRepository = userRepository;
         this.platformRepository = platformRepository;
         this.manufacturerRepository = manufacturerRepository;
+        this.objectMapper = objectMapper;
     }
 
     @Transactional(readOnly = true)
     @RabbitListener(queues = RabbitMQConfig.LISTING_EVENTS_QUEUE)
-    public void handleListingCreated(ListingCreatedEvent event) {
-        log.info("Received listing created event: {}", event.listingId());
+    public void handleListingEvent(Message message) {
+        String eventType = message.getMessageProperties().getHeader("eventType");
+        String body = new String(message.getBody());
+
+        log.info("Received listing event: {}", eventType);
 
         try {
-            Listing listing = listingRepository.findById(new ListingId(event.listingId()))
-                    .orElseThrow(() -> new IllegalStateException("Listing not found: " + event.listingId()));
-
-            User seller = userRepository.findById(listing.sellerId())
-                    .orElseThrow(() -> new IllegalStateException("Seller not found: " + listing.sellerId()));
-
-            Platform platform = platformRepository.findById(listing.platformId())
-                    .orElseThrow(() -> new IllegalStateException("Platform not found: " + listing.platformId()));
-
-            Manufacturer manufacturer = manufacturerRepository.findById(listing.manufacturerId())
-                    .orElseThrow(() -> new IllegalStateException("Manufacturer not found: " + listing.manufacturerId()));
-
-            ListingSearchResult searchResult = new ListingSearchResult(
-                    listing.id().value(),
-                    listing.name(),
-                    listing.description(),
-                    listing.platformId(),
-                    platform.name(),
-                    listing.manufacturerId(),
-                    manufacturer.name(),
-                    listing.condition().name(),
-                    listing.quantity(),
-                    listing.type().name(),
-                    listing.price(),
-                    listing.startingPrice(),
-                    listing.buyNowPrice(),
-                    listing.auctionEndDate() != null ? listing.auctionEndDate().toInstant(ZoneOffset.UTC) : null,
-                    listing.cashDiscountPercent(),
-                    listing.status().name(),
-                    listing.sellerId().value(),
-                    seller.nickname(),
-                    List.of(),
-                    listing.createdAt().toInstant(ZoneOffset.UTC)
-            );
-
-            listingSearchRepository.index(searchResult);
-            log.info("Successfully indexed listing: {}", event.listingId());
-
+            switch (eventType) {
+                case "listing.created" -> handleListingCreated(objectMapper.readValue(body, ListingCreatedEvent.class));
+                case "listing.deleted" -> handleListingDeleted(objectMapper.readValue(body, ListingDeletedEvent.class));
+                case "listing.sold" -> handleListingSold(objectMapper.readValue(body, ListingSoldEvent.class));
+                default -> log.warn("Unknown event type: {}", eventType);
+            }
         } catch (Exception e) {
-            log.error("Failed to index listing: {}", event.listingId(), e);
+            log.error("Failed to process listing event: {}", eventType, e);
         }
     }
 
-    @RabbitListener(queues = RabbitMQConfig.LISTING_EVENTS_QUEUE)
-    public void handleListingDeleted(ListingDeletedEvent event) {
-        log.info("Received listing deleted event: {}", event.listingId());
+    private void handleListingCreated(ListingCreatedEvent event) {
+        log.info("Processing listing created: {}", event.listingId());
 
-        try {
-            listingSearchRepository.delete(event.listingId());
-            log.info("Successfully removed listing from index: {}", event.listingId());
-        } catch (Exception e) {
-            log.error("Failed to remove listing from index: {}", event.listingId(), e);
-        }
+        Listing listing = listingRepository.findById(new ListingId(event.listingId()))
+                .orElseThrow(() -> new IllegalStateException("Listing not found: " + event.listingId()));
+
+        User seller = userRepository.findById(listing.sellerId())
+                .orElseThrow(() -> new IllegalStateException("Seller not found: " + listing.sellerId()));
+
+        Platform platform = platformRepository.findById(listing.platformId())
+                .orElseThrow(() -> new IllegalStateException("Platform not found: " + listing.platformId()));
+
+        Manufacturer manufacturer = manufacturerRepository.findById(listing.manufacturerId())
+                .orElseThrow(() -> new IllegalStateException("Manufacturer not found: " + listing.manufacturerId()));
+
+        ListingSearchResult searchResult = new ListingSearchResult(
+                listing.id().value(),
+                listing.name(),
+                listing.description(),
+                listing.platformId(),
+                platform.name(),
+                listing.manufacturerId(),
+                manufacturer.name(),
+                listing.condition().name(),
+                listing.quantity(),
+                listing.type().name(),
+                listing.price(),
+                listing.startingPrice(),
+                listing.buyNowPrice(),
+                listing.auctionEndDate() != null ? listing.auctionEndDate().toInstant(ZoneOffset.UTC) : null,
+                listing.cashDiscountPercent(),
+                listing.status().name(),
+                listing.sellerId().value(),
+                seller.nickname(),
+                List.of(),
+                listing.createdAt().toInstant(ZoneOffset.UTC)
+        );
+
+        listingSearchRepository.index(searchResult);
+        log.info("Successfully indexed listing: {}", event.listingId());
+    }
+
+    private void handleListingDeleted(ListingDeletedEvent event) {
+        log.info("Processing listing deleted: {}", event.listingId());
+        listingSearchRepository.delete(event.listingId());
+        log.info("Successfully removed listing from index: {}", event.listingId());
+    }
+
+    private void handleListingSold(ListingSoldEvent event) {
+        log.info("Processing listing sold: {}", event.listingId());
+        listingSearchRepository.delete(event.listingId());
+        log.info("Successfully removed sold listing from index: {}", event.listingId());
     }
 }
