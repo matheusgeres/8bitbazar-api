@@ -3,45 +3,27 @@ package com.eightbitbazar.adapter.out.storage;
 import com.eightbitbazar.application.port.out.ImageStorage;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
-import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.sync.RequestBody;
-import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
-import jakarta.annotation.PostConstruct;
 import java.io.InputStream;
-import java.net.URI;
 
 @Component
 public class MinioStorageAdapter implements ImageStorage {
 
-    @Value("${minio.endpoint}")
-    private String endpoint;
+    private final S3Client s3Client;
+    private final String endpoint;
+    private final String bucket;
 
-    @Value("${minio.access-key}")
-    private String accessKey;
-
-    @Value("${minio.secret-key}")
-    private String secretKey;
-
-    @Value("${minio.bucket}")
-    private String bucket;
-
-    private S3Client s3Client;
-
-    @PostConstruct
-    public void init() {
-        this.s3Client = S3Client.builder()
-            .endpointOverride(URI.create(endpoint))
-            .region(Region.US_EAST_1)
-            .credentialsProvider(StaticCredentialsProvider.create(
-                AwsBasicCredentials.create(accessKey, secretKey)
-            ))
-            .forcePathStyle(true)
-            .build();
+    public MinioStorageAdapter(
+            S3Client s3Client,
+            @Value("${minio.endpoint}") String endpoint,
+            @Value("${minio.bucket}") String bucket) {
+        this.s3Client = s3Client;
+        this.endpoint = endpoint;
+        this.bucket = bucket;
     }
 
     @Override

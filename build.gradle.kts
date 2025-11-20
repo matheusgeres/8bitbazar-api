@@ -40,6 +40,10 @@ dependencies {
     // Elasticsearch
     implementation("org.springframework.data:spring-data-elasticsearch")
 
+    // Monitoring
+    implementation("org.springframework.boot:spring-boot-starter-actuator")
+    implementation("io.micrometer:micrometer-registry-prometheus")
+
     // Utilities
     compileOnly("org.projectlombok:lombok")
     annotationProcessor("org.projectlombok:lombok")

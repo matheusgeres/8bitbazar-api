@@ -75,6 +75,16 @@ public class RabbitMQConfig {
     }
 
     @Bean
+    public Binding notificationListingCreatedBinding(Queue notificationQueue, TopicExchange eventsExchange) {
+        return BindingBuilder.bind(notificationQueue).to(eventsExchange).with("listing.created");
+    }
+
+    @Bean
+    public Binding notificationListingSoldBinding(Queue notificationQueue, TopicExchange eventsExchange) {
+        return BindingBuilder.bind(notificationQueue).to(eventsExchange).with("listing.sold");
+    }
+
+    @Bean
     public Jackson2JsonMessageConverter messageConverter(ObjectMapper objectMapper) {
         return new Jackson2JsonMessageConverter(objectMapper);
     }
