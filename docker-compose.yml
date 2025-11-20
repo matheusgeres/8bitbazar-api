@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   mysql:
     image: mysql:8.0
@@ -18,19 +16,22 @@ services:
       retries: 5
 
   liquibase:
-    image: liquibase/liquibase:4.25
+    image: liquibase/liquibase:4.25.1
     container_name: eightbitbazar-liquibase
     depends_on:
       mysql:
         condition: service_healthy
     volumes:
-      - ./liquibase/changelog:/liquibase/changelog
-    command: >
-      --url=jdbc:mysql://mysql:3306/eightbitbazar?allowPublicKeyRetrieval=true&useSSL=false
-      --username=root
-      --password=root
-      --changelog-file=changelog/db.changelog-master.xml
-      update
+      - ./liquibase/changelog:/liquibase/changelog:Z
+      - ./liquibase/drivers:/drivers:Z
+    command:
+      - --url=jdbc:mysql://mysql:3306/eightbitbazar?allowPublicKeyRetrieval=true&useSSL=false
+      - --username=root
+      - --password=root
+      - --changelog-file=changelog/db.changelog-master.xml
+      - --classpath=/drivers/mysql-connector-j-8.1.0.jar
+      - --driver=com.mysql.cj.jdbc.Driver
+      - update
 
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
