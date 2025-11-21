@@ -1,6 +1,6 @@
 services:
   mysql:
-    image: mysql:8.0
+    image: mysql:8.4.7
     container_name: eightbitbazar-mysql
     ports:
       - "3306:3306"
@@ -31,7 +31,7 @@ services:
       - --username=root
       - --password=root
       - --changelog-file=changelog/db.changelog-master.xml
-      - --classpath=/drivers/mysql-connector-j-8.1.0.jar
+      - --classpath=/drivers/mysql-connector-j-8.4.0.jar
       - --driver=com.mysql.cj.jdbc.Driver
       - update
 

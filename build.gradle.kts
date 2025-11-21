@@ -2,8 +2,8 @@ import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 
 plugins {
     java
-    id("org.springframework.boot") version "3.2.0"
-    id("io.spring.dependency-management") version "1.1.4"
+    id("org.springframework.boot") version "3.5.8"
+    id("io.spring.dependency-management") version "1.1.7"
 }
 
 group = "br.com.eightbitbazar"
@@ -29,10 +29,10 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
 
     // Database
-    runtimeOnly("com.mysql:mysql-connector-j")
+    runtimeOnly("com.mysql:mysql-connector-j:8.4.0")
 
     // AWS S3 SDK (MinIO compatible)
-    implementation("software.amazon.awssdk:s3:2.21.0")
+    implementation("software.amazon.awssdk:s3:2.39.1")
 
     // RabbitMQ
     implementation("org.springframework.boot:spring-boot-starter-amqp")
@@ -53,12 +53,12 @@ dependencies {
     testImplementation("org.springframework.security:spring-security-test")
 
     // Testcontainers
-    testImplementation("org.testcontainers:testcontainers:1.19.3")
-    testImplementation("org.testcontainers:junit-jupiter:1.19.3")
-    testImplementation("org.testcontainers:mysql:1.19.3")
-    testImplementation("org.testcontainers:rabbitmq:1.19.3")
-    testImplementation("org.testcontainers:elasticsearch:1.19.3")
-    testImplementation("org.testcontainers:minio:1.19.3")
+    testImplementation("org.testcontainers:testcontainers:1.21.3")
+    testImplementation("org.testcontainers:junit-jupiter:1.21.3")
+    testImplementation("org.testcontainers:mysql:1.21.3")
+    testImplementation("org.testcontainers:rabbitmq:1.21.3")
+    testImplementation("org.testcontainers:elasticsearch:1.21.3")
+    testImplementation("org.testcontainers:minio:1.21.3")
 }
 
 tasks.withType<Test> {

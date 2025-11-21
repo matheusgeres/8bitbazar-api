@@ -24,7 +24,7 @@ public abstract class IntegrationTestBase {
     static final ElasticsearchContainer elasticsearch;
 
     static {
-        mysql = new MySQLContainer<>(DockerImageName.parse("mysql:8.0"))
+        mysql = new MySQLContainer<>(DockerImageName.parse("mysql:8.4.7"))
             .withDatabaseName("eightbitbazar")
             .withUsername("test")
             .withPassword("test")
