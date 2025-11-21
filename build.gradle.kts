@@ -6,7 +6,7 @@ plugins {
     id("io.spring.dependency-management") version "1.1.4"
 }
 
-group = "com.eightbitbazar"
+group = "br.com.eightbitbazar"
 version = "0.0.1-SNAPSHOT"
 
 java {
