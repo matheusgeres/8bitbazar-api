@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import java.math.BigDecimal;
 
 @RestController
-@RequestMapping("/listings/{listingId}/bids")
+@RequestMapping("/api/v1/listings/{listingId}/bids")
 public class BidController {
 
     private final PlaceBidUseCase placeBidUseCase;

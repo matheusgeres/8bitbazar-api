@@ -74,10 +74,10 @@ public class SecurityConfig {
         http
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(authorize -> authorize
-                .requestMatchers("/auth/register", "/auth/login", "/auth/forgot-password", "/auth/reset-password").permitAll()
+                .requestMatchers("/api/v1/auth/register", "/api/v1/auth/login", "/api/v1/auth/forgot-password", "/api/v1/auth/reset-password").permitAll()
                 .requestMatchers("/oauth2/**", "/.well-known/**").permitAll()
                 .requestMatchers("/actuator/**").permitAll()
-                .requestMatchers("/admin/**").hasRole("ADMIN")
+                .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
                 .anyRequest().authenticated()
             )
             .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter())))

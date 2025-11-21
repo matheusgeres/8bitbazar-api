@@ -26,7 +26,7 @@ import java.time.Instant;
 import java.util.List;
 
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/api/v1/auth")
 public class AuthController {
 
     private static final long ACCESS_TOKEN_TTL_SECONDS = 3600;

@@ -13,7 +13,7 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/listings/{listingId}/purchase")
+@RequestMapping("/api/v1/listings/{listingId}/purchase")
 public class PurchaseController {
 
     private final DirectPurchaseUseCase directPurchaseUseCase;

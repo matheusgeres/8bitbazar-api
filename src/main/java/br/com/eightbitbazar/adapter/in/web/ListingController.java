@@ -21,7 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @RestController
-@RequestMapping("/listings")
+@RequestMapping("/api/v1/listings")
 public class ListingController {
 
     private final CreateListingUseCase createListingUseCase;
