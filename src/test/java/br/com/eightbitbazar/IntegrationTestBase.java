@@ -7,6 +7,8 @@ import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.MySQLContainer;
+import org.testcontainers.containers.RabbitMQContainer;
+import org.testcontainers.elasticsearch.ElasticsearchContainer;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 
@@ -18,6 +20,8 @@ public abstract class IntegrationTestBase {
 
     static final MySQLContainer<?> mysql;
     static final GenericContainer<?> minio;
+    static final RabbitMQContainer rabbitmq;
+    static final ElasticsearchContainer elasticsearch;
 
     static {
         mysql = new MySQLContainer<>(DockerImageName.parse("mysql:8.0"))
@@ -33,8 +37,18 @@ public abstract class IntegrationTestBase {
             .withCommand("server /data")
             .withReuse(true);
 
+        rabbitmq = new RabbitMQContainer(DockerImageName.parse("rabbitmq:3-management"))
+            .withReuse(true);
+
+        elasticsearch = new ElasticsearchContainer(DockerImageName.parse("docker.elastic.co/elasticsearch/elasticsearch:8.11.0"))
+            .withEnv("xpack.security.enabled", "false")
+            .withEnv("discovery.type", "single-node")
+            .withReuse(true);
+
         mysql.start();
         minio.start();
+        rabbitmq.start();
+        elasticsearch.start();
     }
 
     @DynamicPropertySource
@@ -42,6 +56,7 @@ public abstract class IntegrationTestBase {
         registry.add("spring.datasource.url", mysql::getJdbcUrl);
         registry.add("spring.datasource.username", mysql::getUsername);
         registry.add("spring.datasource.password", mysql::getPassword);
+        registry.add("spring.datasource.driver-class-name", () -> "com.mysql.cj.jdbc.Driver");
         registry.add("spring.jpa.hibernate.ddl-auto", () -> "create-drop");
 
         registry.add("minio.endpoint", () ->
@@ -50,12 +65,13 @@ public abstract class IntegrationTestBase {
         registry.add("minio.secret-key", () -> "minioadmin");
         registry.add("minio.bucket", () -> "test-bucket");
 
-        // Disable RabbitMQ and Elasticsearch for basic tests
-        registry.add("spring.rabbitmq.host", () -> "localhost");
-        registry.add("spring.rabbitmq.port", () -> "5672");
-        registry.add("spring.elasticsearch.uris", () -> "http://localhost:9200");
-        registry.add("spring.autoconfigure.exclude", () ->
-            "org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration," +
-            "org.springframework.boot.autoconfigure.elasticsearch.ElasticsearchRestClientAutoConfiguration");
+        // RabbitMQ configuration from Testcontainer
+        registry.add("spring.rabbitmq.host", rabbitmq::getHost);
+        registry.add("spring.rabbitmq.port", rabbitmq::getAmqpPort);
+        registry.add("spring.rabbitmq.username", rabbitmq::getAdminUsername);
+        registry.add("spring.rabbitmq.password", rabbitmq::getAdminPassword);
+
+        // Elasticsearch configuration from Testcontainer
+        registry.add("spring.elasticsearch.uris", elasticsearch::getHttpHostAddress);
     }
 }
