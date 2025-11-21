@@ -39,7 +39,7 @@ class AuthControllerIntegrationTest extends IntegrationTestBase {
             )
         );
 
-        mockMvc.perform(post("/auth/register")
+        mockMvc.perform(post("/api/v1/auth/register")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
             .andExpect(status().isCreated())
@@ -62,7 +62,7 @@ class AuthControllerIntegrationTest extends IntegrationTestBase {
         );
 
         // First registration
-        mockMvc.perform(post("/auth/register")
+        mockMvc.perform(post("/api/v1/auth/register")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
             .andExpect(status().isCreated());
@@ -79,7 +79,7 @@ class AuthControllerIntegrationTest extends IntegrationTestBase {
             null
         );
 
-        mockMvc.perform(post("/auth/register")
+        mockMvc.perform(post("/api/v1/auth/register")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(duplicateRequest)))
             .andExpect(status().isBadRequest())
@@ -99,7 +99,7 @@ class AuthControllerIntegrationTest extends IntegrationTestBase {
             null
         );
 
-        mockMvc.perform(post("/auth/register")
+        mockMvc.perform(post("/api/v1/auth/register")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
             .andExpect(status().isBadRequest());
@@ -107,7 +107,7 @@ class AuthControllerIntegrationTest extends IntegrationTestBase {
 
     @Test
     void forgotPasswordShouldReturn501() throws Exception {
-        mockMvc.perform(post("/auth/forgot-password"))
+        mockMvc.perform(post("/api/v1/auth/forgot-password"))
             .andExpect(status().isNotImplemented())
             .andExpect(jsonPath("$.message").value("Funcionalidade em desenvolvimento"));
     }

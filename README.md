@@ -36,7 +36,7 @@ Compradores podem:
 O projeto segue a **Arquitetura Hexagonal** (Ports & Adapters):
 
 ```
-src/main/java/com/eightbitbazar/
+src/main/java/br/com/eightbitbazar/
 ├── domain/              # Entidades e regras de negócio
 ├── application/
 │   ├── port/
@@ -125,39 +125,39 @@ A API estará disponível em `http://localhost:8080`
 - `GET /.well-known/openid-configuration` - OIDC discovery
 
 ### Autenticação
-- `POST /auth/register` - Cadastro de usuário
-- `POST /auth/login` - Login (retorna JWT)
-- `POST /auth/forgot-password` - Recuperação de senha (em desenvolvimento)
-- `POST /auth/reset-password` - Resetar senha (em desenvolvimento)
+- `POST /api/v1/auth/register` - Cadastro de usuário
+- `POST /api/v1/auth/login` - Login (retorna JWT)
+- `POST /api/v1/auth/forgot-password` - Recuperação de senha (em desenvolvimento)
+- `POST /api/v1/auth/reset-password` - Resetar senha (em desenvolvimento)
 
 ### Usuário
-- `GET /users/me` - Dados do usuário logado
-- `PUT /users/me` - Atualizar perfil
-- `DELETE /users/me` - Excluir conta
+- `GET /api/v1/users/me` - Dados do usuário logado
+- `PUT /api/v1/users/me` - Atualizar perfil
+- `DELETE /api/v1/users/me` - Excluir conta
 
 ### Listings (Anúncios)
-- `POST /listings` - Criar anúncio
-- `GET /listings` - Listar com filtros
-- `GET /listings/{id}` - Detalhes do anúncio
-- `PATCH /listings/{id}` - Atualizar anúncio *(plano futuro)*
-- `PATCH /listings/{id}/price` - Atualizar preço/promoção *(plano futuro)*
-- `DELETE /listings/{id}` - Excluir anúncio
-- `POST /listings/{id}/images` - Upload de imagens
+- `POST /api/v1/listings` - Criar anúncio
+- `GET /api/v1/listings` - Listar com filtros
+- `GET /api/v1/listings/{id}` - Detalhes do anúncio
+- `PATCH /api/v1/listings/{id}` - Atualizar anúncio *(plano futuro)*
+- `PATCH /api/v1/listings/{id}/price` - Atualizar preço/promoção *(plano futuro)*
+- `DELETE /api/v1/listings/{id}` - Excluir anúncio
+- `POST /api/v1/listings/{id}/images` - Upload de imagens
 
 ### Lances
-- `POST /listings/{id}/bids` - Dar lance
-- `GET /listings/{id}/bids` - Histórico de lances *(plano futuro)*
+- `POST /api/v1/listings/{id}/bids` - Dar lance
+- `GET /api/v1/listings/{id}/bids` - Histórico de lances *(plano futuro)*
 
 ### Compras
-- `POST /listings/{id}/purchase` - Compra direta
-- `GET /users/me/purchases` - Minhas compras *(plano futuro)*
-- `GET /users/me/sales` - Minhas vendas *(plano futuro)*
+- `POST /api/v1/listings/{id}/purchase` - Compra direta
+- `GET /api/v1/users/me/purchases` - Minhas compras *(plano futuro)*
+- `GET /api/v1/users/me/sales` - Minhas vendas *(plano futuro)*
 
 ### Admin
-- `POST /admin/platforms` - Criar plataforma
-- `GET /admin/platforms` - Listar plataformas
-- `POST /admin/manufacturers` - Criar fabricante
-- `GET /admin/manufacturers` - Listar fabricantes
+- `POST /api/v1/admin/platforms` - Criar plataforma
+- `GET /api/v1/admin/platforms` - Listar plataformas
+- `POST /api/v1/admin/manufacturers` - Criar fabricante
+- `GET /api/v1/admin/manufacturers` - Listar fabricantes
 
 ## 📦 Modelo de Dados
 
@@ -184,7 +184,7 @@ A API utiliza **Spring Authorization Server** com OAuth2/OIDC para autenticaçã
 
 ### Obter Token (Login)
 ```bash
-curl -X POST http://localhost:8080/auth/login \
+curl -X POST http://localhost:8080/api/v1/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email": "seu@email.com", "password": "suasenha"}'
 ```
