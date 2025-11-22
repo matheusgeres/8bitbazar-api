@@ -56,12 +56,12 @@ dependencies {
     testImplementation("org.springframework.security:spring-security-test")
 
     // Testcontainers
-    testImplementation("org.testcontainers:testcontainers:1.21.3")
-    testImplementation("org.testcontainers:junit-jupiter:1.21.3")
-    testImplementation("org.testcontainers:mysql:1.21.3")
-    testImplementation("org.testcontainers:rabbitmq:1.21.3")
-    testImplementation("org.testcontainers:elasticsearch:1.21.3")
-    testImplementation("org.testcontainers:minio:1.21.3")
+    testImplementation("org.testcontainers:testcontainers:2.0.2")
+    testImplementation("org.testcontainers:testcontainers-junit-jupiter:2.0.2")
+    testImplementation("org.testcontainers:testcontainers-mysql:2.0.2")
+    testImplementation("org.testcontainers:testcontainers-rabbitmq:2.0.2")
+    testImplementation("org.testcontainers:testcontainers-elasticsearch:2.0.2")
+    testImplementation("org.testcontainers:testcontainers-minio:2.0.2")
 }
 
 tasks.withType<Test> {
