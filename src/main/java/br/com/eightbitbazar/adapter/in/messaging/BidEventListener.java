@@ -13,7 +13,7 @@ import br.com.eightbitbazar.domain.listing.ListingId;
 import br.com.eightbitbazar.domain.manufacturer.Manufacturer;
 import br.com.eightbitbazar.domain.platform.Platform;
 import br.com.eightbitbazar.domain.user.User;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -32,7 +32,7 @@ public class BidEventListener {
     private final UserRepository userRepository;
     private final PlatformRepository platformRepository;
     private final ManufacturerRepository manufacturerRepository;
-    private final ObjectMapper objectMapper;
+    private final JsonMapper jsonMapper;
 
     public BidEventListener(
             ListingSearchRepository listingSearchRepository,
@@ -40,13 +40,13 @@ public class BidEventListener {
             UserRepository userRepository,
             PlatformRepository platformRepository,
             ManufacturerRepository manufacturerRepository,
-            ObjectMapper objectMapper) {
+            JsonMapper jsonMapper) {
         this.listingSearchRepository = listingSearchRepository;
         this.listingRepository = listingRepository;
         this.userRepository = userRepository;
         this.platformRepository = platformRepository;
         this.manufacturerRepository = manufacturerRepository;
-        this.objectMapper = objectMapper;
+        this.jsonMapper = jsonMapper;
     }
 
     @Transactional(readOnly = true)
@@ -59,7 +59,7 @@ public class BidEventListener {
 
         try {
             if ("bid.placed".equals(eventType)) {
-                handleBidPlaced(objectMapper.readValue(body, BidPlacedEvent.class));
+                handleBidPlaced(jsonMapper.readValue(body, BidPlacedEvent.class));
             } else {
                 log.warn("Unknown bid event type: {}", eventType);
             }

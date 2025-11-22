@@ -1,6 +1,6 @@
 package br.com.eightbitbazar;
 
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -40,10 +40,9 @@ public abstract class IntegrationTestBase {
         rabbitmq = new RabbitMQContainer(DockerImageName.parse("rabbitmq:3-management"))
             .withReuse(true);
 
-        elasticsearch = new ElasticsearchContainer(DockerImageName.parse("docker.elastic.co/elasticsearch/elasticsearch:8.11.0"))
+        elasticsearch = new ElasticsearchContainer(DockerImageName.parse("docker.elastic.co/elasticsearch/elasticsearch:9.0.0"))
             .withEnv("xpack.security.enabled", "false")
-            .withEnv("discovery.type", "single-node")
-            .withReuse(true);
+            .withEnv("discovery.type", "single-node");
 
         mysql.start();
         minio.start();

@@ -2,10 +2,10 @@ package br.com.eightbitbazar.adapter.in.web;
 
 import br.com.eightbitbazar.IntegrationTestBase;
 import br.com.eightbitbazar.adapter.in.web.dto.RegisterUserRequest;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -19,7 +19,7 @@ class AuthControllerIntegrationTest extends IntegrationTestBase {
     private MockMvc mockMvc;
 
     @Autowired
-    private ObjectMapper objectMapper;
+    private JsonMapper jsonMapper;
 
     @Test
     void shouldRegisterUser() throws Exception {
@@ -41,7 +41,7 @@ class AuthControllerIntegrationTest extends IntegrationTestBase {
 
         mockMvc.perform(post("/api/v1/auth/register")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
+                .content(jsonMapper.writeValueAsString(request)))
             .andExpect(status().isCreated())
             .andExpect(jsonPath("$.email").value("test@example.com"))
             .andExpect(jsonPath("$.nickname").value("testuser"))
@@ -64,7 +64,7 @@ class AuthControllerIntegrationTest extends IntegrationTestBase {
         // First registration
         mockMvc.perform(post("/api/v1/auth/register")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
+                .content(jsonMapper.writeValueAsString(request)))
             .andExpect(status().isCreated());
 
         // Second registration with same email
@@ -81,7 +81,7 @@ class AuthControllerIntegrationTest extends IntegrationTestBase {
 
         mockMvc.perform(post("/api/v1/auth/register")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(duplicateRequest)))
+                .content(jsonMapper.writeValueAsString(duplicateRequest)))
             .andExpect(status().isBadRequest())
             .andExpect(jsonPath("$.message").value("Email already registered"));
     }
@@ -101,7 +101,7 @@ class AuthControllerIntegrationTest extends IntegrationTestBase {
 
         mockMvc.perform(post("/api/v1/auth/register")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
+                .content(jsonMapper.writeValueAsString(request)))
             .andExpect(status().isBadRequest());
     }
 
