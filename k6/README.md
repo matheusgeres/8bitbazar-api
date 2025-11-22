@@ -92,7 +92,7 @@ k6 run --vus 50 --duration 10m k6/05-full-flow.js
 ## Gerar Relatório HTML
 
 ```bash
-k6 run --out json=results.json k6/full-flow.js
+k6 run --out json=results.json k6/05-full-flow.js
 
 # Converter para HTML (requer k6-reporter)
 # npm install -g k6-html-reporter
@@ -125,7 +125,7 @@ docker run --rm -i \
 Para visualização em tempo real, configure o k6 para enviar métricas ao InfluxDB:
 
 ```bash
-k6 run --out influxdb=http://localhost:8086/k6 k6/full-flow.js
+k6 run --out influxdb=http://localhost:8086/k6 k6/05-full-flow.js
 ```
 
 Depois importe o [dashboard do k6](https://grafana.com/grafana/dashboards/2587) no Grafana.
