@@ -21,15 +21,15 @@ Compradores podem:
 
 | Tecnologia | Versão | Descrição |
 |------------|--------|-----------|
-| Java | 21 | Linguagem principal |
-| Spring Boot | 3.2.x | Framework web |
+| Java | 25 | Linguagem principal |
+| Spring Boot | 4.0.0 | Framework web |
 | Spring Authorization Server | - | OAuth2/OIDC (self-hosted) |
-| MySQL | 8.0 | Banco de dados |
-| Liquibase | 4.25 | Migrations de banco |
-| Elasticsearch | 8.11 | Busca avançada |
+| MySQL | 8.4 | Banco de dados |
+| Liquibase | 4.25.1 | Migrations de banco |
+| Elasticsearch | 9.0.0 | Busca avançada |
 | MinIO | - | Storage de imagens (S3-compatible) |
 | RabbitMQ | 3.x | Mensageria assíncrona |
-| Gradle | - | Build tool |
+| Gradle | 9.2.1 | Build tool |
 
 ## 🏗️ Arquitetura
 
@@ -63,9 +63,9 @@ src/main/java/br/com/eightbitbazar/
 
 ### Pré-requisitos
 
-- Java 21+
+- Java 25+
 - Podman ou Docker
-- Gradle 8.x
+- Gradle 9.x
 
 ### 1. Subir a infraestrutura
 
