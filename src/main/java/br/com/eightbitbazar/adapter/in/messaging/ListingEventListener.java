@@ -15,7 +15,7 @@ import br.com.eightbitbazar.domain.listing.ListingId;
 import br.com.eightbitbazar.domain.manufacturer.Manufacturer;
 import br.com.eightbitbazar.domain.platform.Platform;
 import br.com.eightbitbazar.domain.user.User;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -34,7 +34,7 @@ public class ListingEventListener {
     private final UserRepository userRepository;
     private final PlatformRepository platformRepository;
     private final ManufacturerRepository manufacturerRepository;
-    private final ObjectMapper objectMapper;
+    private final JsonMapper jsonMapper;
 
     public ListingEventListener(
             ListingSearchRepository listingSearchRepository,
@@ -42,13 +42,13 @@ public class ListingEventListener {
             UserRepository userRepository,
             PlatformRepository platformRepository,
             ManufacturerRepository manufacturerRepository,
-            ObjectMapper objectMapper) {
+            JsonMapper jsonMapper) {
         this.listingSearchRepository = listingSearchRepository;
         this.listingRepository = listingRepository;
         this.userRepository = userRepository;
         this.platformRepository = platformRepository;
         this.manufacturerRepository = manufacturerRepository;
-        this.objectMapper = objectMapper;
+        this.jsonMapper = jsonMapper;
     }
 
     @Transactional(readOnly = true)
@@ -61,9 +61,9 @@ public class ListingEventListener {
 
         try {
             switch (eventType) {
-                case "listing.created" -> handleListingCreated(objectMapper.readValue(body, ListingCreatedEvent.class));
-                case "listing.deleted" -> handleListingDeleted(objectMapper.readValue(body, ListingDeletedEvent.class));
-                case "listing.sold" -> handleListingSold(objectMapper.readValue(body, ListingSoldEvent.class));
+                case "listing.created" -> handleListingCreated(jsonMapper.readValue(body, ListingCreatedEvent.class));
+                case "listing.deleted" -> handleListingDeleted(jsonMapper.readValue(body, ListingDeletedEvent.class));
+                case "listing.sold" -> handleListingSold(jsonMapper.readValue(body, ListingSoldEvent.class));
                 default -> log.warn("Unknown event type: {}", eventType);
             }
         } catch (Exception e) {

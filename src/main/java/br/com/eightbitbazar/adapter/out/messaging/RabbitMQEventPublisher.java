@@ -3,7 +3,7 @@ package br.com.eightbitbazar.adapter.out.messaging;
 import br.com.eightbitbazar.application.port.out.EventPublisher;
 import br.com.eightbitbazar.config.RabbitMQConfig;
 import br.com.eightbitbazar.domain.event.DomainEvent;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageProperties;
@@ -15,17 +15,17 @@ import org.springframework.stereotype.Component;
 public class RabbitMQEventPublisher implements EventPublisher {
 
     private final RabbitTemplate rabbitTemplate;
-    private final ObjectMapper objectMapper;
+    private final JsonMapper jsonMapper;
 
-    public RabbitMQEventPublisher(RabbitTemplate rabbitTemplate, ObjectMapper objectMapper) {
+    public RabbitMQEventPublisher(RabbitTemplate rabbitTemplate, JsonMapper jsonMapper) {
         this.rabbitTemplate = rabbitTemplate;
-        this.objectMapper = objectMapper;
+        this.jsonMapper = jsonMapper;
     }
 
     @Override
     public void publish(DomainEvent event) {
         try {
-            String json = objectMapper.writeValueAsString(event);
+            String json = jsonMapper.writeValueAsString(event);
 
             MessageProperties properties = new MessageProperties();
             properties.setContentType("application/json");
