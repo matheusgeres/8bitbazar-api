@@ -5,6 +5,12 @@
 - [x] RabbitMQ Integration - Eventos assíncronos (fechamento de leilões, notificações)
 - [x] Login/Autenticação - Endpoint de login com JWT
 
+### OAuth2 JDBC Persistence
+- [x] Implementar JdbcRegisteredClientRepository no SecurityConfig
+- [x] Implementar JdbcOAuth2AuthorizationService no SecurityConfig
+- [x] Implementar JdbcOAuth2AuthorizationConsentService no SecurityConfig
+- [x] Criar changelog Liquibase para popular clients OAuth2 iniciais
+
 ## Prioridade Média
 - [ ] CORS Configuration - Para frontend consumir a API
 - [x] Swagger/OpenAPI - Documentação da API
