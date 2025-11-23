@@ -10,7 +10,8 @@ public class MetricsConfig {
 
     @Bean
     public Counter listingsCreatedCounter(MeterRegistry registry) {
-        return Counter.builder("eightbitbazar.listings.created")
+        // Avoid Prometheus reserved suffix `_created` by ending with `.count`
+        return Counter.builder("eightbitbazar.listings.created.count")
                 .description("Total number of listings created")
                 .register(registry);
     }
