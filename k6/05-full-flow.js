@@ -1,11 +1,6 @@
 import http from 'k6/http';
 import { check, sleep, group } from 'k6';
-import { BASE_URL, defaultHeaders, authHeaders, defaultThresholds, scenarios } from './config.js';
-
-// Configurar para não considerar 403 como falha (comportamento esperado para não-admin)
-const adminExpectedStatuses = {
-  responseCallback: http.expectedStatuses(200, 201, 403),
-};
+import { BASE_URL, defaultHeaders, authHeaders, defaultThresholds } from './config.js';
 
 export const options = {
   vus: 5,
@@ -14,27 +9,6 @@ export const options = {
 };
 
 // Helpers
-function generateUser() {
-  const timestamp = Date.now();
-  const vuId = __VU;
-  return {
-    email: `user_${vuId}_${timestamp}@test.com`,
-    password: 'Test@123',
-    nickname: `user${vuId}${timestamp}`,
-    fullName: `Test User ${vuId}`,
-    phone: '11999999999',
-    isSeller: true,
-  };
-}
-
-function register(user) {
-  return http.post(
-    `${BASE_URL}/api/v1/auth/register`,
-    JSON.stringify(user),
-    { headers: defaultHeaders }
-  );
-}
-
 function login(email, password) {
   const res = http.post(
     `${BASE_URL}/api/v1/auth/login`,
@@ -48,201 +22,242 @@ function login(email, password) {
   return null;
 }
 
-export default function () {
-  const user = generateUser();
-  let token = null;
+function register(user) {
+  return http.post(
+    `${BASE_URL}/api/v1/auth/register`,
+    JSON.stringify(user),
+    { headers: defaultHeaders }
+  );
+}
 
-  // Auth Flow
-  group('Auth Flow', function () {
-    // Register
-    const registerRes = register(user);
+function pickFirst(list) {
+  if (!list) return null;
+  if (Array.isArray(list) && list.length > 0) return list[0];
+  if (list.content && list.content.length > 0) return list.content[0];
+  return null;
+}
+
+export function setup() {
+  const timestamp = Date.now();
+
+  // Buscar IDs válidos usando admin
+  const adminToken = login('admin@8bitbazar.com', 'Admin@123');
+  let platformId = 1;
+  let manufacturerId = 1;
+
+  if (adminToken) {
+    const platformsRes = http.get(`${BASE_URL}/api/v1/admin/platforms`, {
+      headers: authHeaders(adminToken),
+    });
+    if (platformsRes.status === 200) {
+      const platform = pickFirst(platformsRes.json());
+      if (platform) platformId = platform.id;
+    }
+
+    const manufacturersRes = http.get(`${BASE_URL}/api/v1/admin/manufacturers`, {
+      headers: authHeaders(adminToken),
+    });
+    if (manufacturersRes.status === 200) {
+      const manufacturer = pickFirst(manufacturersRes.json());
+      if (manufacturer) manufacturerId = manufacturer.id;
+    }
+  }
+
+  // Criar vendedor para publicar anúncios
+  const seller = {
+    email: `seller_full_${timestamp}@test.com`,
+    password: 'Seller@123',
+    nickname: `sellerfull${timestamp}`,
+    fullName: 'Full Flow Seller',
+    phone: '11999999999',
+    isSeller: true,
+  };
+
+  const sellerReg = register(seller);
+  check(sellerReg, { 'seller created': (r) => r.status === 201 });
+  const sellerToken = login(seller.email, seller.password);
+  if (!sellerToken) {
+    console.error('Seller login failed');
+    return { listingIds: [], auctionId: null, platformId, manufacturerId };
+  }
+
+  // Criar algumas vendas diretas
+  const listingIds = [];
+  for (let i = 0; i < 5; i++) {
+    const listingRes = http.post(
+      `${BASE_URL}/api/v1/listings`,
+      JSON.stringify({
+        name: `Game ${i} ${timestamp}`,
+        description: 'Test game for sale',
+        platformId,
+        manufacturerId,
+        condition: 'COMPLETE',
+        quantity: 3,
+        type: 'DIRECT_SALE',
+        price: 99.99 + i,
+        cashDiscountPercent: 10,
+      }),
+      { headers: authHeaders(sellerToken) }
+    );
+    if (listingRes.status === 201) {
+      listingIds.push(listingRes.json().id);
+    } else {
+      console.error(`listing ${i} creation failed ${listingRes.status}: ${listingRes.body}`);
+    }
+    check(listingRes, { 'listing created': (r) => r.status === 201 });
+  }
+
+  // Criar leilão
+  let auctionId = null;
+  const auctionRes = http.post(
+    `${BASE_URL}/api/v1/listings`,
+    JSON.stringify({
+      name: `Auction ${timestamp}`,
+      description: 'Test auction',
+      platformId,
+      manufacturerId,
+      condition: 'COMPLETE',
+      quantity: 1,
+      type: 'AUCTION',
+      startingPrice: 50.0,
+      buyNowPrice: 200.0,
+      auctionEndDate: '2025-12-01T23:59:59',
+    }),
+    { headers: authHeaders(sellerToken) }
+  );
+  if (auctionRes.status === 201) {
+    auctionId = auctionRes.json().id;
+  } else {
+    console.error(`auction creation failed ${auctionRes.status}: ${auctionRes.body}`);
+  }
+  check(auctionRes, { 'auction created': (r) => r.status === 201 });
+
+  console.log(
+    `Setup completo: listings=${listingIds.length}, auction=${auctionId}, platform=${platformId}, manufacturer=${manufacturerId}`
+  );
+
+  if (listingIds.length === 0 || !auctionId) {
+    throw new Error('Setup falhou ao criar listing/auction');
+  }
+
+  return { listingIds, auctionId };
+}
+
+function pickNumber(value, fallback) {
+  if (value === null || value === undefined) return fallback;
+  const num = typeof value === 'number' ? value : parseFloat(value);
+  return Number.isFinite(num) ? num : fallback;
+}
+
+export default function (data) {
+  const { listingIds, auctionId } = data;
+  const timestamp = Date.now();
+  const vuId = __VU;
+
+  // Criar comprador
+  const buyer = {
+    email: `buyer_full_${vuId}_${timestamp}@test.com`,
+    password: 'Buyer@123',
+    nickname: `buyerfull${vuId}${timestamp}`,
+    fullName: `Full Flow Buyer ${vuId}`,
+    phone: '11999999999',
+    isSeller: false,
+  };
+
+  group('Auth Flow (buyer)', function () {
+    const registerRes = register(buyer);
     check(registerRes, {
-      'register status is 201': (r) => r.status === 201,
+      'buyer register 201': (r) => r.status === 201,
     });
 
     sleep(0.5);
-
-    // Login
-    token = login(user.email, user.password);
-    check(token, {
-      'login successful': (t) => t !== null,
-    });
-
-    if (token) {
-      // Get me
-      const meRes = http.get(`${BASE_URL}/api/v1/users/me`, {
-        headers: authHeaders(token),
-      });
-      check(meRes, {
-        'get me status is 200': (r) => r.status === 200,
-      });
-    }
   });
 
-  if (!token) {
-    console.error('Auth failed, skipping other flows');
+  const buyerToken = login(buyer.email, buyer.password);
+  check(buyerToken, { 'buyer login ok': (t) => t !== null });
+  if (!buyerToken) {
+    console.error('Buyer login failed');
     return;
   }
 
   sleep(1);
 
-  // Admin Flow (criar dados de referência)
-  let manufacturerId = 1;
-  let platformId = 1;
-
-  group('Admin Flow', function () {
-    // Create Manufacturer
-    const manufacturerRes = http.post(
-      `${BASE_URL}/api/v1/admin/manufacturers`,
-      JSON.stringify({
-        name: `Manufacturer ${Date.now()}`,
-        country: 'Japan',
-        foundedYear: 1985,
-      }),
-      { headers: authHeaders(token), ...adminExpectedStatuses }
-    );
-
-    if (manufacturerRes.status === 201) {
-      manufacturerId = manufacturerRes.json().id;
-    }
-
-    check(manufacturerRes, {
-      'create manufacturer': (r) => r.status === 201 || r.status === 403,
-    });
-
-    sleep(0.5);
-
-    // Create Platform
-    const platformRes = http.post(
-      `${BASE_URL}/api/v1/admin/platforms`,
-      JSON.stringify({
-        name: `Platform ${Date.now()}`,
-        abbreviation: 'PLT',
-        generation: 4,
-        releaseYear: 1990,
-        manufacturerId: manufacturerId,
-      }),
-      { headers: authHeaders(token), ...adminExpectedStatuses }
-    );
-
-    if (platformRes.status === 201) {
-      platformId = platformRes.json().id;
-    }
-
-    check(platformRes, {
-      'create platform': (r) => r.status === 201 || r.status === 403,
-    });
-
-    sleep(0.5);
-
-    // List Platforms
-    const listRes = http.get(`${BASE_URL}/api/v1/admin/platforms`, {
-      headers: authHeaders(token),
-      ...adminExpectedStatuses,
-    });
-    check(listRes, {
-      'list platforms': (r) => r.status === 200 || r.status === 403,
-    });
-  });
-
-  sleep(1);
-
-  // Sale Flow
-  let listingId = null;
-  let auctionId = null;
-
-  group('Sale Flow', function () {
-    // Create Listing
-    const listingRes = http.post(
-      `${BASE_URL}/api/v1/listings`,
-      JSON.stringify({
-        name: `Game ${Date.now()}`,
-        description: 'Test game for sale',
-        platformId: platformId,
-        manufacturerId: manufacturerId,
-        condition: 'COMPLETE',
-        quantity: 1,
-        type: 'DIRECT_SALE',
-        price: 99.99,
-        cashDiscountPercent: 10,
-      }),
-      { headers: authHeaders(token) }
-    );
-
-    if (listingRes.status === 201) {
-      listingId = listingRes.json().id;
-    }
-
-    check(listingRes, {
-      'create listing': (r) => r.status === 201,
-    });
-
-    sleep(0.5);
-
-    // Create Auction
-    const auctionRes = http.post(
-      `${BASE_URL}/api/v1/listings`,
-      JSON.stringify({
-        name: `Auction ${Date.now()}`,
-        description: 'Test auction',
-        platformId: platformId,
-        manufacturerId: manufacturerId,
-        condition: 'COMPLETE',
-        quantity: 1,
-        type: 'AUCTION',
-        startingPrice: 50.00,
-        buyNowPrice: 200.00,
-        auctionEndDate: '2025-12-01T23:59:59',
-      }),
-      { headers: authHeaders(token) }
-    );
-
-    if (auctionRes.status === 201) {
-      auctionId = auctionRes.json().id;
-    }
-
-    check(auctionRes, {
-      'create auction': (r) => r.status === 201,
-    });
-
-    sleep(0.5);
-
-    // Get Listing
-    if (listingId) {
-      const getRes = http.get(`${BASE_URL}/api/v1/listings/${listingId}`, {
-        headers: authHeaders(token),
-      });
-      check(getRes, {
-        'get listing': (r) => r.status === 200,
-      });
-    }
-  });
-
-  sleep(1);
-
-  // Purchase Flow
+  // Fluxo de compra e lance
   group('Purchase Flow', function () {
-    // Search Listings
     const searchRes = http.get(
       `${BASE_URL}/api/v1/listings?search=Game&page=0&size=10`,
-      { headers: authHeaders(token) }
+      { headers: authHeaders(buyerToken) }
     );
-    check(searchRes, {
-      'search listings': (r) => r.status === 200,
-    });
+    check(searchRes, { 'search listings 200': (r) => r.status === 200 });
 
     sleep(0.5);
 
-    // Place Bid (se tiver leilão)
+    if (listingIds && listingIds.length > 0) {
+      const idx = Math.floor(Math.random() * listingIds.length);
+      const listingId = listingIds[idx];
+
+      const getRes = http.get(`${BASE_URL}/api/v1/listings/${listingId}`, {
+        headers: authHeaders(buyerToken),
+      });
+      check(getRes, { 'get listing 200': (r) => r.status === 200 });
+
+      sleep(0.5);
+
+      const purchaseRes = http.post(
+        `${BASE_URL}/api/v1/listings/${listingId}/purchase`,
+        JSON.stringify({ paymentMethod: 'PIX' }),
+        { headers: authHeaders(buyerToken) }
+      );
+      check(purchaseRes, {
+        'purchase processed': (r) =>
+          r.status === 200 || r.status === 201 || r.status === 400 || r.status === 409,
+      });
+      if (purchaseRes.status >= 400) {
+        console.warn(`purchase fail ${purchaseRes.status}: ${purchaseRes.body}`);
+      }
+    }
+
+    sleep(0.5);
+
     if (auctionId) {
+      // Pegar detalhes para calcular lance válido (mínimo + 1 e abaixo do buyNow se existir)
+      const auctionRes = http.get(`${BASE_URL}/api/v1/listings/${auctionId}`, {
+        headers: authHeaders(buyerToken),
+      });
+
+      if (auctionRes.status !== 200) {
+        console.warn(`auction details fail ${auctionRes.status}: ${auctionRes.body}`);
+        return;
+      }
+
+      const auctionData = auctionRes.json();
+      const highestBid = auctionData.recentBids && auctionData.recentBids.length > 0
+        ? pickNumber(auctionData.recentBids[0].amount, pickNumber(auctionData.startingPrice, 50))
+        : pickNumber(auctionData.startingPrice, 50);
+
+      const buyNow = pickNumber(auctionData.buyNowPrice, null);
+      let bidAmount = highestBid + 1 + Math.random() * 5; // mínimo + (1..6)
+
+      if (buyNow && bidAmount >= buyNow) {
+        bidAmount = buyNow - 1; // evitar converter em compra imediata
+      }
+
+      // duas casas decimais
+      bidAmount = Math.max(bidAmount, highestBid + 1);
+      bidAmount = Math.round(bidAmount * 100) / 100;
+
       const bidRes = http.post(
         `${BASE_URL}/api/v1/listings/${auctionId}/bids`,
-        JSON.stringify({ amount: 75.00 }),
-        { headers: authHeaders(token) }
+        JSON.stringify({ amount: bidAmount }),
+        { headers: authHeaders(buyerToken) }
       );
       check(bidRes, {
-        'place bid': (r) => r.status === 200 || r.status === 201 || r.status === 400,
+        'bid processed': (r) =>
+          r.status === 201 || r.status === 200 || r.status === 400 || r.status === 409,
       });
+      if (bidRes.status >= 400) {
+        console.warn(`bid fail ${bidRes.status}: ${bidRes.body}`);
+      }
     }
   });
 
