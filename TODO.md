@@ -12,7 +12,7 @@
 - [x] Criar changelog Liquibase para popular clients OAuth2 iniciais
 
 ## Prioridade Média
-- [ ] CORS Configuration - Para frontend consumir a API
+- [x] CORS Configuration - Para frontend consumir a API
 - [x] Swagger/OpenAPI - Documentação da API
 - [ ] Mais testes - Cobertura para outros use cases (PlaceBid, DirectPurchase, CreateListing)
 
