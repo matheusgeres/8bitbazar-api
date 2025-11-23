@@ -7,7 +7,7 @@
 
 ## Prioridade Média
 - [ ] CORS Configuration - Para frontend consumir a API
-- [ ] Swagger/OpenAPI - Documentação da API
+- [x] Swagger/OpenAPI - Documentação da API
 - [ ] Mais testes - Cobertura para outros use cases (PlaceBid, DirectPurchase, CreateListing)
 
 ## Prioridade Baixa
