@@ -45,6 +45,9 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-health")
     implementation("io.micrometer:micrometer-registry-prometheus")
 
+    // API Documentation
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.0")
+
     // Utilities
     compileOnly("org.projectlombok:lombok")
     annotationProcessor("org.projectlombok:lombok")

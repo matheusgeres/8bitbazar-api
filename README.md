@@ -29,6 +29,7 @@ Compradores podem:
 | Elasticsearch | 9.0.0 | Busca avançada |
 | MinIO | - | Storage de imagens (S3-compatible) |
 | RabbitMQ | 3.x | Mensageria assíncrona |
+| SpringDoc OpenAPI | 3.0.0 | Documentação da API (Swagger) |
 | Gradle | 9.2.1 | Build tool |
 
 ## 🏗️ Arquitetura
@@ -115,6 +116,13 @@ A API estará disponível em `http://localhost:8080`
 - **Prometheus**: http://localhost:9090
 - **Métricas da API**: http://localhost:8080/actuator/prometheus
 - **Health Check**: http://localhost:8080/actuator/health
+
+### 5. Documentação da API
+
+- **Swagger UI**: http://localhost:8080/swagger-ui.html
+- **OpenAPI JSON**: http://localhost:8080/api-docs
+
+A documentação interativa permite testar os endpoints diretamente no navegador, com suporte a autenticação OAuth2.
 
 ## 📡 API Endpoints
 
