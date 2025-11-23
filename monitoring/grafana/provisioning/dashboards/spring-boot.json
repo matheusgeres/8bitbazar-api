@@ -386,7 +386,7 @@
       "pluginVersion": "10.2.2",
       "targets": [
         {
-          "expr": "eightbitbazar_listings_created_total{application=\"eightbitbazar\"}",
+          "expr": "eightbitbazar_listings_created_count_total{application=\"eightbitbazar\"}",
           "refId": "A"
         }
       ],
