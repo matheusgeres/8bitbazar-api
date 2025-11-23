@@ -50,6 +50,7 @@ public class SecurityConfig {
     public SecurityFilterChain authorizationServerSecurityFilterChain(HttpSecurity http) throws Exception {
         http
             .securityMatcher("/oauth2/**", "/.well-known/**")
+            .cors(Customizer.withDefaults())
             .oauth2AuthorizationServer(authorizationServer -> authorizationServer
                 .oidc(Customizer.withDefaults())
             )
@@ -68,6 +69,7 @@ public class SecurityConfig {
     @Order(2)
     public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
         http
+            .cors(Customizer.withDefaults())
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(authorize -> authorize
                 .requestMatchers("/api/v1/auth/register", "/api/v1/auth/login", "/api/v1/auth/forgot-password", "/api/v1/auth/reset-password").permitAll()
