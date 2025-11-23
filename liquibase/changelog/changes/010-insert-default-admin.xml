@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.25.xsd">
+
+    <changeSet id="011-insert-default-admin" author="eightbitbazar">
+
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*) FROM users WHERE email = 'admin@8bitbazar.com'
+            </sqlCheck>
+        </preConditions>
+
+        <insert tableName="users">
+            <column name="email" value="admin@8bitbazar.com"/>
+            <!-- Plain text for dev - should be BCrypt hash in production -->
+            <column name="password" value="{noop}Admin@123"/>
+            <column name="nickname" value="admin"/>
+            <column name="full_name" value="Administrador 8BitBazar"/>
+            <column name="role" value="ADMIN"/>
+            <column name="is_seller" valueBoolean="true"/>
+        </insert>
+
+    </changeSet>
+
+</databaseChangeLog>

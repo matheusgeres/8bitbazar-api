@@ -55,4 +55,9 @@ public class UserRepositoryAdapter implements UserRepository {
     public boolean existsByNickname(String nickname) {
         return jpaUserRepository.existsByNickname(nickname);
     }
+
+    @Override
+    public void updatePassword(UserId id, String newPassword) {
+        jpaUserRepository.updatePassword(id.value(), newPassword);
+    }
 }

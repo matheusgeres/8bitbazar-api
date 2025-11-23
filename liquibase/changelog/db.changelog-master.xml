@@ -14,6 +14,8 @@
     <include file="changes/007-create-purchase-table.xml" relativeToChangelogFile="true"/>
     <include file="changes/008-create-price-history-table.xml" relativeToChangelogFile="true"/>
     <include file="changes/009-create-oauth2-tables.xml" relativeToChangelogFile="true"/>
-    <include file="changes/010-insert-oauth2-clients.xml" relativeToChangelogFile="true"/>
+    <include file="changes/010-insert-default-admin.xml" relativeToChangelogFile="true"/>
+
+    <include file="changes/011-insert-oauth2-clients.xml" relativeToChangelogFile="true"/>
 
 </databaseChangeLog>
