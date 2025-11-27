@@ -1,5 +1,6 @@
 package br.com.eightbitbazar.adapter.in.web.dto;
 
+import br.com.eightbitbazar.adapter.in.web.validation.ValidItemCondition;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -19,6 +20,7 @@ public record CreateListingRequest(
     Long manufacturerId,
 
     @NotBlank(message = "Condition is required")
+    @ValidItemCondition(message = "Invalid condition value. Valid values are: SEALED, COMPLETE, LOOSE, DAMAGED")
     String condition,
 
     @Positive(message = "Quantity must be positive")

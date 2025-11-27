@@ -140,7 +140,7 @@ class FullFlowIntegrationTest extends IntegrationTestBase {
                 "Cartucho em excelente estado, testado e funcionando",
                 platformId,
                 manufacturerId,
-                "EXCELLENT",
+                "LOOSE",
                 1,
                 "AUCTION",
                 null,
@@ -154,6 +154,13 @@ class FullFlowIntegrationTest extends IntegrationTestBase {
                     .header("Authorization", "Bearer " + sellerToken)
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(jsonMapper.writeValueAsString(auctionRequest)))
+                .andDo(r -> {
+                    if (r.getResponse().getStatus() != 201) {
+                        System.out.println("CREATE AUCTION ERROR:");
+                        System.out.println("Status: " + r.getResponse().getStatus());
+                        System.out.println("Body: " + r.getResponse().getContentAsString());
+                    }
+                })
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.name").value("Super Mario World Original"))
                 .andExpect(jsonPath("$.type").value("AUCTION"))
@@ -171,7 +178,7 @@ class FullFlowIntegrationTest extends IntegrationTestBase {
                 "Cartucho original com manual",
                 platformId,
                 manufacturerId,
-                "GOOD",
+                "COMPLETE",
                 1,
                 "DIRECT_SALE",
                 new BigDecimal("80.00"),
