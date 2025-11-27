@@ -1,11 +1,11 @@
 package br.com.eightbitbazar.adapter.in.web;
 
+import br.com.eightbitbazar.adapter.in.web.dto.PurchaseRequest;
 import br.com.eightbitbazar.application.port.in.DirectPurchaseUseCase;
 import br.com.eightbitbazar.application.usecase.purchase.DirectPurchaseInput;
 import br.com.eightbitbazar.application.usecase.purchase.DirectPurchaseOutput;
 import br.com.eightbitbazar.domain.user.UserId;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -36,8 +36,4 @@ public class PurchaseController {
         return ResponseEntity.status(HttpStatus.CREATED).body(output);
     }
 
-    public record PurchaseRequest(
-        @NotBlank(message = "Payment method is required")
-        String paymentMethod
-    ) {}
 }

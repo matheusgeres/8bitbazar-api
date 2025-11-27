@@ -455,7 +455,7 @@ class FullFlowIntegrationTest extends IntegrationTestBase {
                 "Cartucho original americano",
                 platformId,
                 manufacturerId,
-                "GOOD",
+                "COMPLETE",
                 1,
                 "SHOWCASE",
                 null,
@@ -516,7 +516,7 @@ class FullFlowIntegrationTest extends IntegrationTestBase {
                 "Jogo clássico do Atari",
                 platformId,
                 manufacturerId,
-                "FAIR",
+                "LOOSE",
                 1,
                 "DIRECT_SALE",
                 new BigDecimal("45.00"),
@@ -551,6 +551,62 @@ class FullFlowIntegrationTest extends IntegrationTestBase {
                     .contentType(MediaType.APPLICATION_JSON)
                     .content("{\"paymentMethod\": \"CREDIT_CARD\"}"))
                 .andExpect(status().isCreated());
+        }
+
+        @Test
+        @DisplayName("Deve rejeitar método de pagamento inválido")
+        void shouldRejectInvalidPaymentMethod() throws Exception {
+            String adminToken = loginAsAdmin();
+
+            MvcResult platformResult = mockMvc.perform(post("/api/v1/admin/platforms")
+                    .header("Authorization", "Bearer " + adminToken)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("{\"name\": \"Neo Geo\"}"))
+                .andExpect(status().isCreated())
+                .andReturn();
+            Long platformId = extractId(platformResult);
+
+            MvcResult manufacturerResult = mockMvc.perform(post("/api/v1/admin/manufacturers")
+                    .header("Authorization", "Bearer " + adminToken)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("{\"name\": \"SNK\"}"))
+                .andExpect(status().isCreated())
+                .andReturn();
+            Long manufacturerId = extractId(manufacturerResult);
+
+            String sellerToken = registerAndLogin("seller4@test.com", "Seller4@123", "seller4", true);
+
+            CreateListingRequest listingRequest = new CreateListingRequest(
+                "Metal Slug",
+                "Jogo clássico do Neo Geo",
+                platformId,
+                manufacturerId,
+                "COMPLETE",
+                1,
+                "DIRECT_SALE",
+                new BigDecimal("80.00"),
+                null,
+                null,
+                null,
+                null
+            );
+
+            MvcResult listingResult = mockMvc.perform(post("/api/v1/listings")
+                    .header("Authorization", "Bearer " + sellerToken)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(jsonMapper.writeValueAsString(listingRequest)))
+                .andExpect(status().isCreated())
+                .andReturn();
+            Long listingId = extractId(listingResult);
+
+            String buyerToken = registerAndLogin("buyer3@test.com", "Buyer3@123", "buyer3", false);
+
+            mockMvc.perform(post("/api/v1/listings/" + listingId + "/purchase")
+                    .header("Authorization", "Bearer " + buyerToken)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("{\"paymentMethod\": \"BITCOIN\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Invalid payment method. Valid values are: PIX, CASH, CREDIT_CARD, DEBIT_CARD, OTHER"));
         }
     }
 
