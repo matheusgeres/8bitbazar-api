@@ -1,6 +1,7 @@
 package br.com.eightbitbazar.adapter.in.web.dto;
 
 import br.com.eightbitbazar.adapter.in.web.validation.ValidItemCondition;
+import br.com.eightbitbazar.adapter.in.web.validation.ValidListingType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -27,6 +28,7 @@ public record CreateListingRequest(
     int quantity,
 
     @NotBlank(message = "Type is required")
+    @ValidListingType(message = "Invalid type value. Valid values are: AUCTION, DIRECT_SALE, SHOWCASE")
     String type,
 
     BigDecimal price,
