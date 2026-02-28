@@ -43,3 +43,4 @@ out/
 *.log
 application-local.yml
 data/
+docs/plans/

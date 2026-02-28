@@ -4,6 +4,7 @@ import br.com.eightbitbazar.IntegrationTestBase;
 import br.com.eightbitbazar.adapter.in.web.dto.CreateListingRequest;
 import br.com.eightbitbazar.adapter.in.web.dto.LoginRequest;
 import br.com.eightbitbazar.adapter.in.web.dto.RegisterUserRequest;
+import br.com.eightbitbazar.support.IntegrationTestFixtures;
 import tools.jackson.databind.json.JsonMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer;
@@ -62,7 +63,7 @@ class FullFlowIntegrationTest extends IntegrationTestBase {
                 .andExpect(jsonPath("$.role").value("ADMIN"))
                 .andReturn();
 
-            adminToken = extractToken(result);
+            adminToken = IntegrationTestFixtures.extractToken(jsonMapper, result);
         }
 
         @Test
@@ -77,7 +78,7 @@ class FullFlowIntegrationTest extends IntegrationTestBase {
                 .andExpect(jsonPath("$.name").value("Super Nintendo"))
                 .andReturn();
 
-            platformId = extractId(result);
+            platformId = IntegrationTestFixtures.extractId(jsonMapper, result);
         }
 
         @Test
@@ -92,7 +93,7 @@ class FullFlowIntegrationTest extends IntegrationTestBase {
                 .andExpect(jsonPath("$.name").value("Nintendo"))
                 .andReturn();
 
-            manufacturerId = extractId(result);
+            manufacturerId = IntegrationTestFixtures.extractId(jsonMapper, result);
         }
 
         @Test
@@ -128,7 +129,7 @@ class FullFlowIntegrationTest extends IntegrationTestBase {
                 .andExpect(status().isOk())
                 .andReturn();
 
-            sellerToken = extractToken(result);
+            sellerToken = IntegrationTestFixtures.extractToken(jsonMapper, result);
         }
 
         @Test
@@ -166,7 +167,7 @@ class FullFlowIntegrationTest extends IntegrationTestBase {
                 .andExpect(jsonPath("$.type").value("AUCTION"))
                 .andReturn();
 
-            auctionListingId = extractId(result);
+            auctionListingId = IntegrationTestFixtures.extractId(jsonMapper, result);
         }
 
         @Test
@@ -197,7 +198,7 @@ class FullFlowIntegrationTest extends IntegrationTestBase {
                 .andExpect(jsonPath("$.type").value("DIRECT_SALE"))
                 .andReturn();
 
-            directSaleListingId = extractId(result);
+            directSaleListingId = IntegrationTestFixtures.extractId(jsonMapper, result);
         }
 
         @Test
@@ -233,7 +234,7 @@ class FullFlowIntegrationTest extends IntegrationTestBase {
                 .andExpect(status().isOk())
                 .andReturn();
 
-            buyerToken = extractToken(result);
+            buyerToken = IntegrationTestFixtures.extractToken(jsonMapper, result);
         }
 
         @Test
@@ -346,7 +347,7 @@ class FullFlowIntegrationTest extends IntegrationTestBase {
         @Test
         @DisplayName("Admin deve criar e listar plataformas")
         void adminShouldCreateAndListPlatforms() throws Exception {
-            String token = loginAsAdmin();
+            String token = IntegrationTestFixtures.loginAsAdmin(mockMvc, jsonMapper);
 
             mockMvc.perform(post("/api/v1/admin/platforms")
                     .header("Authorization", "Bearer " + token)
@@ -369,7 +370,7 @@ class FullFlowIntegrationTest extends IntegrationTestBase {
         @Test
         @DisplayName("Admin deve criar e listar fabricantes")
         void adminShouldCreateAndListManufacturers() throws Exception {
-            String token = loginAsAdmin();
+            String token = IntegrationTestFixtures.loginAsAdmin(mockMvc, jsonMapper);
 
             mockMvc.perform(post("/api/v1/admin/manufacturers")
                     .header("Authorization", "Bearer " + token)
@@ -415,7 +416,7 @@ class FullFlowIntegrationTest extends IntegrationTestBase {
                 .andExpect(status().isOk())
                 .andReturn();
 
-            String userToken = extractToken(result);
+            String userToken = IntegrationTestFixtures.extractToken(jsonMapper, result);
 
             mockMvc.perform(get("/api/v1/admin/platforms")
                     .header("Authorization", "Bearer " + userToken))
@@ -430,7 +431,7 @@ class FullFlowIntegrationTest extends IntegrationTestBase {
         @Test
         @DisplayName("Vendedor deve criar listing e gerenciar")
         void sellerShouldCreateAndManageListing() throws Exception {
-            String adminToken = loginAsAdmin();
+            String adminToken = IntegrationTestFixtures.loginAsAdmin(mockMvc, jsonMapper);
 
             MvcResult platformResult = mockMvc.perform(post("/api/v1/admin/platforms")
                     .header("Authorization", "Bearer " + adminToken)
@@ -438,7 +439,7 @@ class FullFlowIntegrationTest extends IntegrationTestBase {
                     .content("{\"name\": \"Game Boy\"}"))
                 .andExpect(status().isCreated())
                 .andReturn();
-            Long platformId = extractId(platformResult);
+            Long platformId = IntegrationTestFixtures.extractId(jsonMapper, platformResult);
 
             MvcResult manufacturerResult = mockMvc.perform(post("/api/v1/admin/manufacturers")
                     .header("Authorization", "Bearer " + adminToken)
@@ -446,9 +447,16 @@ class FullFlowIntegrationTest extends IntegrationTestBase {
                     .content("{\"name\": \"Nintendo GB\"}"))
                 .andExpect(status().isCreated())
                 .andReturn();
-            Long manufacturerId = extractId(manufacturerResult);
+            Long manufacturerId = IntegrationTestFixtures.extractId(jsonMapper, manufacturerResult);
 
-            String sellerToken = registerAndLogin("seller2@test.com", "Seller2@123", "seller2", true);
+            String sellerToken = IntegrationTestFixtures.registerAndLogin(
+                mockMvc,
+                jsonMapper,
+                "seller2@test.com",
+                "Seller2@123",
+                "seller2",
+                true
+            );
 
             CreateListingRequest listingRequest = new CreateListingRequest(
                 "Pokemon Red",
@@ -471,7 +479,7 @@ class FullFlowIntegrationTest extends IntegrationTestBase {
                     .content(jsonMapper.writeValueAsString(listingRequest)))
                 .andExpect(status().isCreated())
                 .andReturn();
-            Long listingId = extractId(listingResult);
+            Long listingId = IntegrationTestFixtures.extractId(jsonMapper, listingResult);
 
             mockMvc.perform(get("/api/v1/listings/" + listingId)
                     .header("Authorization", "Bearer " + sellerToken))
@@ -491,7 +499,7 @@ class FullFlowIntegrationTest extends IntegrationTestBase {
         @Test
         @DisplayName("Comprador deve pesquisar, visualizar e comprar")
         void buyerShouldSearchViewAndPurchase() throws Exception {
-            String adminToken = loginAsAdmin();
+            String adminToken = IntegrationTestFixtures.loginAsAdmin(mockMvc, jsonMapper);
 
             MvcResult platformResult = mockMvc.perform(post("/api/v1/admin/platforms")
                     .header("Authorization", "Bearer " + adminToken)
@@ -499,7 +507,7 @@ class FullFlowIntegrationTest extends IntegrationTestBase {
                     .content("{\"name\": \"Atari 2600\"}"))
                 .andExpect(status().isCreated())
                 .andReturn();
-            Long platformId = extractId(platformResult);
+            Long platformId = IntegrationTestFixtures.extractId(jsonMapper, platformResult);
 
             MvcResult manufacturerResult = mockMvc.perform(post("/api/v1/admin/manufacturers")
                     .header("Authorization", "Bearer " + adminToken)
@@ -507,9 +515,16 @@ class FullFlowIntegrationTest extends IntegrationTestBase {
                     .content("{\"name\": \"Atari\"}"))
                 .andExpect(status().isCreated())
                 .andReturn();
-            Long manufacturerId = extractId(manufacturerResult);
+            Long manufacturerId = IntegrationTestFixtures.extractId(jsonMapper, manufacturerResult);
 
-            String sellerToken = registerAndLogin("seller3@test.com", "Seller3@123", "seller3", true);
+            String sellerToken = IntegrationTestFixtures.registerAndLogin(
+                mockMvc,
+                jsonMapper,
+                "seller3@test.com",
+                "Seller3@123",
+                "seller3",
+                true
+            );
 
             CreateListingRequest listingRequest = new CreateListingRequest(
                 "Pitfall",
@@ -532,9 +547,16 @@ class FullFlowIntegrationTest extends IntegrationTestBase {
                     .content(jsonMapper.writeValueAsString(listingRequest)))
                 .andExpect(status().isCreated())
                 .andReturn();
-            Long listingId = extractId(listingResult);
+            Long listingId = IntegrationTestFixtures.extractId(jsonMapper, listingResult);
 
-            String buyerToken = registerAndLogin("buyer2@test.com", "Buyer2@123", "buyer2", false);
+            String buyerToken = IntegrationTestFixtures.registerAndLogin(
+                mockMvc,
+                jsonMapper,
+                "buyer2@test.com",
+                "Buyer2@123",
+                "buyer2",
+                false
+            );
 
             mockMvc.perform(get("/api/v1/listings")
                     .header("Authorization", "Bearer " + buyerToken)
@@ -556,7 +578,7 @@ class FullFlowIntegrationTest extends IntegrationTestBase {
         @Test
         @DisplayName("Deve rejeitar método de pagamento inválido")
         void shouldRejectInvalidPaymentMethod() throws Exception {
-            String adminToken = loginAsAdmin();
+            String adminToken = IntegrationTestFixtures.loginAsAdmin(mockMvc, jsonMapper);
 
             MvcResult platformResult = mockMvc.perform(post("/api/v1/admin/platforms")
                     .header("Authorization", "Bearer " + adminToken)
@@ -564,7 +586,7 @@ class FullFlowIntegrationTest extends IntegrationTestBase {
                     .content("{\"name\": \"Neo Geo\"}"))
                 .andExpect(status().isCreated())
                 .andReturn();
-            Long platformId = extractId(platformResult);
+            Long platformId = IntegrationTestFixtures.extractId(jsonMapper, platformResult);
 
             MvcResult manufacturerResult = mockMvc.perform(post("/api/v1/admin/manufacturers")
                     .header("Authorization", "Bearer " + adminToken)
@@ -572,9 +594,16 @@ class FullFlowIntegrationTest extends IntegrationTestBase {
                     .content("{\"name\": \"SNK\"}"))
                 .andExpect(status().isCreated())
                 .andReturn();
-            Long manufacturerId = extractId(manufacturerResult);
+            Long manufacturerId = IntegrationTestFixtures.extractId(jsonMapper, manufacturerResult);
 
-            String sellerToken = registerAndLogin("seller4@test.com", "Seller4@123", "seller4", true);
+            String sellerToken = IntegrationTestFixtures.registerAndLogin(
+                mockMvc,
+                jsonMapper,
+                "seller4@test.com",
+                "Seller4@123",
+                "seller4",
+                true
+            );
 
             CreateListingRequest listingRequest = new CreateListingRequest(
                 "Metal Slug",
@@ -597,9 +626,16 @@ class FullFlowIntegrationTest extends IntegrationTestBase {
                     .content(jsonMapper.writeValueAsString(listingRequest)))
                 .andExpect(status().isCreated())
                 .andReturn();
-            Long listingId = extractId(listingResult);
+            Long listingId = IntegrationTestFixtures.extractId(jsonMapper, listingResult);
 
-            String buyerToken = registerAndLogin("buyer3@test.com", "Buyer3@123", "buyer3", false);
+            String buyerToken = IntegrationTestFixtures.registerAndLogin(
+                mockMvc,
+                jsonMapper,
+                "buyer3@test.com",
+                "Buyer3@123",
+                "buyer3",
+                false
+            );
 
             mockMvc.perform(post("/api/v1/listings/" + listingId + "/purchase")
                     .header("Authorization", "Bearer " + buyerToken)
@@ -610,58 +646,4 @@ class FullFlowIntegrationTest extends IntegrationTestBase {
         }
     }
 
-    private String loginAsAdmin() throws Exception {
-        LoginRequest loginRequest = new LoginRequest("admin@8bitbazar.com", "Admin@123");
-
-        MvcResult result = mockMvc.perform(post("/api/v1/auth/login")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(jsonMapper.writeValueAsString(loginRequest)))
-            .andExpect(status().isOk())
-            .andReturn();
-
-        return extractToken(result);
-    }
-
-    private String registerAndLogin(String email, String password, String nickname, boolean isSeller) throws Exception {
-        RegisterUserRequest registerRequest = new RegisterUserRequest(
-            email,
-            password,
-            nickname,
-            "Test User " + nickname,
-            null,
-            null,
-            isSeller,
-            new RegisterUserRequest.AddressRequest(
-                "Rua Teste, 123",
-                "São Paulo",
-                "SP",
-                "01234-567"
-            )
-        );
-
-        mockMvc.perform(post("/api/v1/auth/register")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(jsonMapper.writeValueAsString(registerRequest)))
-            .andExpect(status().isCreated());
-
-        LoginRequest loginRequest = new LoginRequest(email, password);
-
-        MvcResult result = mockMvc.perform(post("/api/v1/auth/login")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(jsonMapper.writeValueAsString(loginRequest)))
-            .andExpect(status().isOk())
-            .andReturn();
-
-        return extractToken(result);
-    }
-
-    private String extractToken(MvcResult result) throws Exception {
-        String response = result.getResponse().getContentAsString();
-        return jsonMapper.readTree(response).get("accessToken").asString();
-    }
-
-    private Long extractId(MvcResult result) throws Exception {
-        String response = result.getResponse().getContentAsString();
-        return jsonMapper.readTree(response).get("id").asLong();
-    }
 }

@@ -11,12 +11,21 @@ import org.testcontainers.containers.RabbitMQContainer;
 import org.testcontainers.elasticsearch.ElasticsearchContainer;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
+
+import java.net.URI;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @Testcontainers
 public abstract class IntegrationTestBase {
+
+    private static final String TEST_BUCKET = "test-bucket";
 
     static final MySQLContainer<?> mysql;
     static final GenericContainer<?> minio;
@@ -48,6 +57,7 @@ public abstract class IntegrationTestBase {
         minio.start();
         rabbitmq.start();
         elasticsearch.start();
+        createMinioBucket();
     }
 
     @DynamicPropertySource
@@ -62,7 +72,7 @@ public abstract class IntegrationTestBase {
             "http://" + minio.getHost() + ":" + minio.getMappedPort(9000));
         registry.add("minio.access-key", () -> "minioadmin");
         registry.add("minio.secret-key", () -> "minioadmin");
-        registry.add("minio.bucket", () -> "test-bucket");
+        registry.add("minio.bucket", () -> TEST_BUCKET);
 
         // RabbitMQ configuration from Testcontainer
         registry.add("spring.rabbitmq.host", rabbitmq::getHost);
@@ -72,5 +82,22 @@ public abstract class IntegrationTestBase {
 
         // Elasticsearch configuration from Testcontainer
         registry.add("spring.elasticsearch.uris", elasticsearch::getHttpHostAddress);
+    }
+
+    private static void createMinioBucket() {
+        String endpoint = "http://" + minio.getHost() + ":" + minio.getMappedPort(9000);
+
+        try (S3Client s3Client = S3Client.builder()
+                .endpointOverride(URI.create(endpoint))
+                .region(Region.US_EAST_1)
+                .credentialsProvider(StaticCredentialsProvider.create(
+                    AwsBasicCredentials.create("minioadmin", "minioadmin")
+                ))
+                .forcePathStyle(true)
+                .build()) {
+            s3Client.createBucket(CreateBucketRequest.builder()
+                    .bucket(TEST_BUCKET)
+                    .build());
+        }
     }
 }
