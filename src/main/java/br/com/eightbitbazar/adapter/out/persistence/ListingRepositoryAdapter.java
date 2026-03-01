@@ -11,7 +11,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Repository
 public class ListingRepositoryAdapter implements ListingRepository {
@@ -35,6 +38,24 @@ public class ListingRepositoryAdapter implements ListingRepository {
     public Optional<Listing> findById(ListingId id) {
         return jpaListingRepository.findById(id.value())
             .map(listingMapper::toDomain);
+    }
+
+    @Override
+    public List<Listing> findByIds(Set<ListingId> ids) {
+        if (ids.isEmpty()) {
+            return List.of();
+        }
+
+        return jpaListingRepository.findAllById(ids.stream().map(ListingId::value).toList()).stream()
+            .map(listingMapper::toDomain)
+            .toList();
+    }
+
+    @Override
+    public List<Listing> findExpiredActiveAuctions(LocalDateTime now) {
+        return jpaListingRepository.findExpiredActiveAuctions(List.of("AUCTION"), "ACTIVE", now).stream()
+            .map(listingMapper::toDomain)
+            .toList();
     }
 
     @Override

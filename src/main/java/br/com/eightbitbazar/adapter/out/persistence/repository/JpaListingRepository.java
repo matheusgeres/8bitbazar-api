@@ -7,9 +7,25 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
+
 public interface JpaListingRepository extends JpaRepository<ListingEntity, Long> {
 
     Page<ListingEntity> findBySellerId(Long sellerId, Pageable pageable);
+
+    @Query("""
+        SELECT l FROM ListingEntity l
+        WHERE l.deletedAt IS NULL
+          AND l.type IN :types
+          AND l.status = :status
+          AND l.auctionEndDate IS NOT NULL
+          AND l.auctionEndDate < :now
+        """)
+    List<ListingEntity> findExpiredActiveAuctions(
+        @Param("types") List<String> types,
+        @Param("status") String status,
+        @Param("now") java.time.LocalDateTime now
+    );
 
     @Query("SELECT l FROM ListingEntity l WHERE l.deletedAt IS NULL " +
            "AND (:search IS NULL OR LOWER(l.name) LIKE LOWER(CONCAT('%', :search, '%'))) " +
