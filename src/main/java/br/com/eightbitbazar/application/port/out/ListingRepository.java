@@ -6,13 +6,20 @@ import br.com.eightbitbazar.domain.user.UserId;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.util.List;
+import java.time.LocalDateTime;
 import java.util.Optional;
+import java.util.Set;
 
 public interface ListingRepository {
 
     Listing save(Listing listing);
 
     Optional<Listing> findById(ListingId id);
+
+    List<Listing> findByIds(Set<ListingId> ids);
+
+    List<Listing> findExpiredActiveAuctions(LocalDateTime now);
 
     Page<Listing> findAll(ListingSearchCriteria criteria, Pageable pageable);
 

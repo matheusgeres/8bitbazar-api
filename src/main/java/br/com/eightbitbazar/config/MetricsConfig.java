@@ -38,6 +38,13 @@ public class MetricsConfig {
     }
 
     @Bean
+    public Counter purchaseEventsConsumedCounter(MeterRegistry registry) {
+        return Counter.builder("eightbitbazar.purchase.events.consumed")
+                .description("Total number of purchase events consumed from RabbitMQ")
+                .register(registry);
+    }
+
+    @Bean
     public Counter usersRegisteredCounter(MeterRegistry registry) {
         return Counter.builder("eightbitbazar.users.registered")
                 .description("Total number of users registered")

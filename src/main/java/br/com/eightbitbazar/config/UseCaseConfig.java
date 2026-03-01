@@ -36,6 +36,22 @@ public class UseCaseConfig {
         return new DeleteUser(userRepository);
     }
 
+    @Bean
+    public GetMyPurchasesUseCase getMyPurchasesUseCase(
+        PurchaseRepository purchaseRepository,
+        ListingRepository listingRepository
+    ) {
+        return new GetMyPurchases(purchaseRepository, listingRepository);
+    }
+
+    @Bean
+    public GetMySalesUseCase getMySalesUseCase(
+        PurchaseRepository purchaseRepository,
+        ListingRepository listingRepository
+    ) {
+        return new GetMySales(purchaseRepository, listingRepository);
+    }
+
     // Listing Use Cases
     @Bean
     public CreateListingUseCase createListingUseCase(
@@ -118,6 +134,16 @@ public class UseCaseConfig {
         EventPublisher eventPublisher
     ) {
         return new DirectPurchase(purchaseRepository, listingRepository, eventPublisher);
+    }
+
+    @Bean
+    public CloseExpiredAuctionsUseCase closeExpiredAuctionsUseCase(
+        ListingRepository listingRepository,
+        BidRepository bidRepository,
+        PurchaseRepository purchaseRepository,
+        EventPublisher eventPublisher
+    ) {
+        return new CloseExpiredAuctions(listingRepository, bidRepository, purchaseRepository, eventPublisher);
     }
 
     // Admin Use Cases
