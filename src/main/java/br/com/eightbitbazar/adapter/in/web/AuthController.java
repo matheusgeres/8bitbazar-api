@@ -11,6 +11,7 @@ import br.com.eightbitbazar.application.usecase.user.RegisterUserInput;
 import br.com.eightbitbazar.application.usecase.user.RegisterUserOutput;
 import br.com.eightbitbazar.domain.user.User;
 import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.beans.factory.annotation.Value;
@@ -25,6 +26,9 @@ import org.springframework.web.bind.annotation.*;
 import java.time.Instant;
 import java.util.List;
 
+import static net.logstash.logback.argument.StructuredArguments.kv;
+
+@Slf4j
 @RestController
 @RequestMapping("/api/v1/auth")
 public class AuthController {
@@ -72,6 +76,7 @@ public class AuthController {
         );
 
         RegisterUserOutput output = registerUserUseCase.execute(input);
+        log.info("user.registered", kv("userId", output.id()));
 
         RegisterUserResponse response = new RegisterUserResponse(
             output.id(),
@@ -106,6 +111,7 @@ public class AuthController {
             .build();
 
         String token = jwtEncoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
+        log.info("auth.login.success", kv("userId", user.id().value()));
 
         LoginResponse response = new LoginResponse(
             token,

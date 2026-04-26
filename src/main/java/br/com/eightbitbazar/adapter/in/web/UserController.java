@@ -13,12 +13,16 @@ import br.com.eightbitbazar.application.usecase.user.UpdateUserProfileOutput;
 import br.com.eightbitbazar.application.usecase.user.UserTradeHistoryItemOutput;
 import br.com.eightbitbazar.application.usecase.user.UserProfileOutput;
 import br.com.eightbitbazar.domain.user.UserId;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
+import static net.logstash.logback.argument.StructuredArguments.kv;
+
+@Slf4j
 @RestController
 @RequestMapping("/api/v1/users")
 public class UserController {
@@ -91,6 +95,7 @@ public class UserController {
         );
 
         UpdateUserProfileOutput output = updateUserProfileUseCase.execute(userId, input);
+        log.info("user.profile.updated", kv("userId", userId.value()));
 
         UserResponse response = new UserResponse(
             output.id(),
@@ -115,6 +120,7 @@ public class UserController {
     @DeleteMapping("/me")
     public ResponseEntity<Void> deleteProfile(@AuthenticationPrincipal Jwt jwt) {
         UserId userId = new UserId(Long.parseLong(jwt.getSubject()));
+        log.warn("user.delete.requested", kv("userId", userId.value()));
         deleteUserUseCase.execute(userId);
         return ResponseEntity.noContent().build();
     }

@@ -7,6 +7,7 @@ import br.com.eightbitbazar.application.usecase.listing.*;
 import br.com.eightbitbazar.domain.listing.ListingId;
 import br.com.eightbitbazar.domain.user.UserId;
 import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -20,6 +21,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import static net.logstash.logback.argument.StructuredArguments.kv;
+
+@Slf4j
 @RestController
 @RequestMapping("/api/v1/listings")
 public class ListingController {
@@ -89,7 +93,9 @@ public class ListingController {
             request.cashDiscountPercent()
         );
 
+        log.info("listing.create.requested", kv("sellerId", sellerId.value()), kv("type", input.type()), kv("name", input.name()));
         CreateListingOutput output = createListingUseCase.execute(sellerId, input);
+        log.info("listing.created", kv("listingId", output.id()), kv("sellerId", sellerId.value()));
 
         ListingResponse response = new ListingResponse(
             output.id(),
@@ -119,6 +125,7 @@ public class ListingController {
         @PathVariable Long id
     ) {
         UserId sellerId = new UserId(Long.parseLong(jwt.getSubject()));
+        log.warn("listing.delete.requested", kv("listingId", id), kv("sellerId", sellerId.value()));
         deleteListingUseCase.execute(sellerId, new ListingId(id));
         return ResponseEntity.noContent().build();
     }
@@ -132,6 +139,8 @@ public class ListingController {
         UserId userId = new UserId(Long.parseLong(jwt.getSubject()));
         ListingId listingId = new ListingId(id);
 
+        log.info("listing.images.upload.requested", kv("listingId", id), kv("fileCount", files.size()));
+        
         List<UploadListingImageUseCase.ImageUpload> images = new ArrayList<>();
         for (MultipartFile file : files) {
             images.add(new UploadListingImageUseCase.ImageUpload(
@@ -143,6 +152,7 @@ public class ListingController {
         }
 
         List<String> urls = uploadListingImageUseCase.execute(userId, listingId, images);
+        log.info("listing.images.uploaded", kv("listingId", id), kv("uploadedCount", urls.size()));
         return ResponseEntity.status(HttpStatus.CREATED).body(urls);
     }
 }
