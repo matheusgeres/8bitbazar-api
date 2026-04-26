@@ -5,6 +5,7 @@ import br.com.eightbitbazar.domain.manufacturer.Manufacturer;
 import br.com.eightbitbazar.domain.platform.Platform;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -12,6 +13,9 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+import static net.logstash.logback.argument.StructuredArguments.kv;
+
+@Slf4j
 @RestController
 @RequestMapping("/api/v1/admin")
 @PreAuthorize("hasRole('ADMIN')")
@@ -37,6 +41,7 @@ public class AdminController {
     @PostMapping("/platforms")
     public ResponseEntity<PlatformResponse> createPlatform(@Valid @RequestBody CreateRequest request) {
         Platform platform = createPlatformUseCase.execute(request.name());
+        log.info("admin.platform.created", kv("platformId", platform.id()), kv("name", platform.name()));
         return ResponseEntity.status(HttpStatus.CREATED)
             .body(new PlatformResponse(platform.id(), platform.name()));
     }
@@ -52,6 +57,7 @@ public class AdminController {
     @PostMapping("/manufacturers")
     public ResponseEntity<ManufacturerResponse> createManufacturer(@Valid @RequestBody CreateRequest request) {
         Manufacturer manufacturer = createManufacturerUseCase.execute(request.name());
+        log.info("admin.manufacturer.created", kv("manufacturerId", manufacturer.id()), kv("name", manufacturer.name()));
         return ResponseEntity.status(HttpStatus.CREATED)
             .body(new ManufacturerResponse(manufacturer.id(), manufacturer.name()));
     }

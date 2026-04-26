@@ -7,6 +7,7 @@ import br.com.eightbitbazar.domain.user.UserId;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -15,6 +16,9 @@ import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 
+import static net.logstash.logback.argument.StructuredArguments.kv;
+
+@Slf4j
 @RestController
 @RequestMapping("/api/v1/listings/{listingId}/bids")
 public class BidController {
@@ -34,7 +38,9 @@ public class BidController {
         UserId userId = new UserId(Long.parseLong(jwt.getSubject()));
 
         PlaceBidInput input = new PlaceBidInput(listingId, request.amount());
+        log.info("bid.place.requested", kv("listingId", listingId), kv("userId", userId.value()), kv("amount", request.amount()));
         PlaceBidOutput output = placeBidUseCase.execute(userId, input);
+        log.info("bid.placed", kv("bidId", output.id()), kv("listingId", listingId), kv("convertedToPurchase", output.convertedToPurchase()));
 
         return ResponseEntity.status(HttpStatus.CREATED).body(output);
     }
