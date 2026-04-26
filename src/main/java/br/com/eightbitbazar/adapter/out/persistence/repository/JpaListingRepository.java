@@ -1,28 +1,49 @@
 package br.com.eightbitbazar.adapter.out.persistence.repository;
 
 import br.com.eightbitbazar.adapter.out.persistence.entity.ListingEntity;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface JpaListingRepository extends JpaRepository<ListingEntity, Long> {
 
     Page<ListingEntity> findBySellerId(Long sellerId, Pageable pageable);
 
     @Query("""
-        SELECT l FROM ListingEntity l
+        SELECT l.id FROM ListingEntity l
         WHERE l.deletedAt IS NULL
-          AND l.type IN :types
+          AND l.type = :type
+          AND l.status = :status
+          AND l.auctionEndDate IS NOT NULL
+          AND l.auctionEndDate < :now
+        ORDER BY l.auctionEndDate ASC, l.id ASC
+        """)
+    List<Long> findExpiredActiveAuctionIds(
+        @Param("type") String type,
+        @Param("status") String status,
+        @Param("now") java.time.LocalDateTime now
+    );
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("""
+        SELECT l FROM ListingEntity l
+        WHERE l.id = :id
+          AND l.deletedAt IS NULL
+          AND l.type = :type
           AND l.status = :status
           AND l.auctionEndDate IS NOT NULL
           AND l.auctionEndDate < :now
         """)
-    List<ListingEntity> findExpiredActiveAuctions(
-        @Param("types") List<String> types,
+    Optional<ListingEntity> findExpiredActiveAuctionForUpdate(
+        @Param("id") Long id,
+        @Param("type") String type,
         @Param("status") String status,
         @Param("now") java.time.LocalDateTime now
     );

@@ -52,10 +52,16 @@ public class ListingRepositoryAdapter implements ListingRepository {
     }
 
     @Override
-    public List<Listing> findExpiredActiveAuctions(LocalDateTime now) {
-        return jpaListingRepository.findExpiredActiveAuctions(List.of("AUCTION"), "ACTIVE", now).stream()
-            .map(listingMapper::toDomain)
+    public List<ListingId> findExpiredActiveAuctionIds(LocalDateTime now) {
+        return jpaListingRepository.findExpiredActiveAuctionIds("AUCTION", "ACTIVE", now).stream()
+            .map(ListingId::new)
             .toList();
+    }
+
+    @Override
+    public Optional<Listing> findExpiredActiveAuctionForUpdate(ListingId id, LocalDateTime now) {
+        return jpaListingRepository.findExpiredActiveAuctionForUpdate(id.value(), "AUCTION", "ACTIVE", now)
+            .map(listingMapper::toDomain);
     }
 
     @Override

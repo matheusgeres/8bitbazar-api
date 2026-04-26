@@ -19,7 +19,9 @@ public interface ListingRepository {
 
     List<Listing> findByIds(Set<ListingId> ids);
 
-    List<Listing> findExpiredActiveAuctions(LocalDateTime now);
+    List<ListingId> findExpiredActiveAuctionIds(LocalDateTime now);
+
+    Optional<Listing> findExpiredActiveAuctionForUpdate(ListingId id, LocalDateTime now);
 
     Page<Listing> findAll(ListingSearchCriteria criteria, Pageable pageable);
 
