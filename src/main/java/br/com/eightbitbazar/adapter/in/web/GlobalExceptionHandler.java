@@ -48,21 +48,21 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ErrorResponse> handleIllegalArgumentException(IllegalArgumentException ex) {
-        log.warn("illegal.argument", kv("message", ex.getMessage()));
+        log.warn("illegal.argument", kv("message", ex.getMessage() != null ? ex.getMessage() : ex.toString()));
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
             .body(new ErrorResponse(400, ex.getMessage()));
     }
 
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<ErrorResponse> handleBadCredentialsException(BadCredentialsException ex) {
-        log.warn("auth.failed");
+        log.warn("auth.failed", kv("exception_type", ex.getClass().getSimpleName()));
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
             .body(new ErrorResponse(401, "Invalid credentials"));
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGenericException(Exception ex) {
-        log.error("unhandled.exception", kv("error", ex.getMessage()), ex);
+        log.error("unhandled.exception", kv("error", ex.toString()), ex);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
             .body(new ErrorResponse(500, "Internal server error"));
     }
