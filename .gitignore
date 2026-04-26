@@ -44,3 +44,6 @@ out/
 application-local.yml
 data/
 docs/plans/
+
+# Superpowers spec docs (local only)
+docs/superpowers/
