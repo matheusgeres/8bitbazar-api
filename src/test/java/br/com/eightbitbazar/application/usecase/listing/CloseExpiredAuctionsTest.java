@@ -32,8 +32,10 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -74,7 +76,10 @@ class CloseExpiredAuctionsTest {
             LocalDateTime.of(2026, 3, 1, 9, 0)
         );
 
-        when(listingRepository.findExpiredActiveAuctions(any(LocalDateTime.class))).thenReturn(List.of(expiredAuction));
+        when(listingRepository.findExpiredActiveAuctionIds(any(LocalDateTime.class)))
+            .thenReturn(List.of(new ListingId(55L)));
+        when(listingRepository.findExpiredActiveAuctionForUpdate(eq(new ListingId(55L)), any(LocalDateTime.class)))
+            .thenReturn(Optional.of(expiredAuction));
         when(bidRepository.findHighestBidByListingId(new ListingId(55L))).thenReturn(Optional.of(winningBid));
         when(purchaseRepository.save(any(Purchase.class))).thenAnswer(invocation -> {
             Purchase purchase = invocation.getArgument(0);
@@ -126,7 +131,10 @@ class CloseExpiredAuctionsTest {
     void shouldExpireListingWithoutCreatingPurchaseWhenExpiredAuctionHasNoBids() {
         Listing expiredAuction = expiredAuctionListing(66L, 21L);
 
-        when(listingRepository.findExpiredActiveAuctions(any(LocalDateTime.class))).thenReturn(List.of(expiredAuction));
+        when(listingRepository.findExpiredActiveAuctionIds(any(LocalDateTime.class)))
+            .thenReturn(List.of(new ListingId(66L)));
+        when(listingRepository.findExpiredActiveAuctionForUpdate(eq(new ListingId(66L)), any(LocalDateTime.class)))
+            .thenReturn(Optional.of(expiredAuction));
         when(bidRepository.findHighestBidByListingId(new ListingId(66L))).thenReturn(Optional.empty());
 
         int processed = closeExpiredAuctions.execute();
@@ -144,6 +152,19 @@ class CloseExpiredAuctionsTest {
                 && auctionEndedEvent.winnerId() == null
                 && auctionEndedEvent.winningBid() == null
         ));
+    }
+
+    @Test
+    void shouldSkipCandidateWhenAuctionIsAlreadyProcessedBeforeLock() {
+        when(listingRepository.findExpiredActiveAuctionIds(any(LocalDateTime.class)))
+            .thenReturn(List.of(new ListingId(77L)));
+        when(listingRepository.findExpiredActiveAuctionForUpdate(eq(new ListingId(77L)), any(LocalDateTime.class)))
+            .thenReturn(Optional.empty());
+
+        int processed = closeExpiredAuctions.execute();
+
+        assertEquals(0, processed);
+        verifyNoInteractions(bidRepository, purchaseRepository, eventPublisher);
     }
 
     private Listing expiredAuctionListing(Long listingId, Long sellerId) {

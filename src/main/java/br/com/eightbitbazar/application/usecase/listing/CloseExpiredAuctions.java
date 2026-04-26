@@ -10,6 +10,7 @@ import br.com.eightbitbazar.domain.event.AuctionEndedEvent;
 import br.com.eightbitbazar.domain.event.ListingSoldEvent;
 import br.com.eightbitbazar.domain.event.PurchaseCompletedEvent;
 import br.com.eightbitbazar.domain.listing.Listing;
+import br.com.eightbitbazar.domain.listing.ListingId;
 import br.com.eightbitbazar.domain.listing.ListingStatus;
 import br.com.eightbitbazar.domain.purchase.PaymentMethod;
 import br.com.eightbitbazar.domain.purchase.Purchase;
@@ -43,10 +44,19 @@ public class CloseExpiredAuctions implements CloseExpiredAuctionsUseCase {
 
     @Override
     public int execute() {
-        List<Listing> expiredAuctions = listingRepository.findExpiredActiveAuctions(LocalDateTime.now());
+        LocalDateTime now = LocalDateTime.now();
+        List<ListingId> candidateIds = listingRepository.findExpiredActiveAuctionIds(now);
 
-        expiredAuctions.forEach(this::closeAuction);
-        return expiredAuctions.size();
+        int processed = 0;
+        for (ListingId listingId : candidateIds) {
+            Optional<Listing> lockedListing = listingRepository.findExpiredActiveAuctionForUpdate(listingId, now);
+            if (lockedListing.isEmpty()) {
+                continue;
+            }
+            closeAuction(lockedListing.get());
+            processed++;
+        }
+        return processed;
     }
 
     private void closeAuction(Listing listing) {
