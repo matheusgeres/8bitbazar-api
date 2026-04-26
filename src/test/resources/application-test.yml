@@ -29,3 +29,9 @@ minio:
   access-key: minioadmin
   secret-key: minioadmin
   bucket: eightbitbazar-test
+
+app:
+  auctions:
+    closing:
+      enabled: false
+      fixed-delay: 60000
