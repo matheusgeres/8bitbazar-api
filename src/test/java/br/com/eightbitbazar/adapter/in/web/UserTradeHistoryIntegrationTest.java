@@ -234,4 +234,78 @@ class UserTradeHistoryIntegrationTest extends IntegrationTestBase {
             .andExpect(jsonPath("$.content[0].listingId").value(secondListingId))
             .andExpect(jsonPath("$.content[1].listingId").value(firstListingId));
     }
+
+    @Test
+    void shouldListSalesNewestFirst() throws Exception {
+        String suffix = Long.toString(System.nanoTime());
+        String adminToken = IntegrationTestFixtures.loginAsAdmin(mockMvc, jsonMapper);
+        Long platformId = IntegrationTestFixtures.createPlatform(mockMvc, jsonMapper, adminToken, "Sales Newest Platform " + suffix);
+        Long manufacturerId = IntegrationTestFixtures.createManufacturer(mockMvc, jsonMapper, adminToken, "Sales Newest Manufacturer " + suffix);
+        String sellerToken = IntegrationTestFixtures.registerAndLogin(
+            mockMvc, jsonMapper, "seller-salesnew-" + suffix + "@test.com", "Seller@123", "sellersnew" + suffix, true
+        );
+        String buyer1Token = IntegrationTestFixtures.registerAndLogin(
+            mockMvc, jsonMapper, "buyer1-salesnew-" + suffix + "@test.com", "Buyer@123", "buyer1snew" + suffix, false
+        );
+        String buyer2Token = IntegrationTestFixtures.registerAndLogin(
+            mockMvc, jsonMapper, "buyer2-salesnew-" + suffix + "@test.com", "Buyer@123", "buyer2snew" + suffix, false
+        );
+
+        Long firstListingId = IntegrationTestFixtures.createListing(
+            mockMvc,
+            jsonMapper,
+            sellerToken,
+            new CreateListingRequest(
+                "First Sold Game",
+                "Older sale",
+                platformId,
+                manufacturerId,
+                "COMPLETE",
+                1,
+                "DIRECT_SALE",
+                new BigDecimal("100.00"),
+                null,
+                null,
+                null,
+                null
+            )
+        );
+        Long secondListingId = IntegrationTestFixtures.createListing(
+            mockMvc,
+            jsonMapper,
+            sellerToken,
+            new CreateListingRequest(
+                "Second Sold Game",
+                "Newer sale",
+                platformId,
+                manufacturerId,
+                "COMPLETE",
+                1,
+                "DIRECT_SALE",
+                new BigDecimal("120.00"),
+                null,
+                null,
+                null,
+                null
+            )
+        );
+
+        mockMvc.perform(post("/api/v1/listings/" + firstListingId + "/purchase")
+                .header("Authorization", "Bearer " + buyer1Token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"paymentMethod\":\"PIX\"}"))
+            .andExpect(status().isCreated());
+
+        mockMvc.perform(post("/api/v1/listings/" + secondListingId + "/purchase")
+                .header("Authorization", "Bearer " + buyer2Token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"paymentMethod\":\"PIX\"}"))
+            .andExpect(status().isCreated());
+
+        mockMvc.perform(get("/api/v1/users/me/sales")
+                .header("Authorization", "Bearer " + sellerToken))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.content[0].listingId").value(secondListingId))
+            .andExpect(jsonPath("$.content[1].listingId").value(firstListingId));
+    }
 }
