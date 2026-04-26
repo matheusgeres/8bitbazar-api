@@ -41,6 +41,12 @@ minio:
 server:
   port: 8080
 
+app:
+  auctions:
+    closing:
+      enabled: false
+      fixed-delay: 60000
+
 # Actuator & Prometheus
 management:
   endpoints:

@@ -1,10 +1,12 @@
 package br.com.eightbitbazar.adapter.in.scheduling;
 
 import br.com.eightbitbazar.application.port.in.CloseExpiredAuctionsUseCase;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 @Component
+@ConditionalOnProperty(prefix = "app.auctions.closing", name = "enabled", havingValue = "true")
 public class AuctionClosingScheduler {
 
     private final CloseExpiredAuctionsUseCase closeExpiredAuctionsUseCase;
