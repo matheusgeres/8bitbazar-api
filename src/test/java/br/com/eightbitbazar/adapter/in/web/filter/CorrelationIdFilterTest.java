@@ -7,29 +7,37 @@ import org.slf4j.MDC;
 import org.springframework.mock.web.MockFilterChain;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
+
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 class CorrelationIdFilterTest {
 
     private CorrelationIdFilter filter;
+    private MockHttpServletRequest request;
+    private MockHttpServletResponse response;
+    private MockFilterChain chain;
 
     @BeforeEach
     void setUp() {
         filter = new CorrelationIdFilter();
+        request = new MockHttpServletRequest();
+        response = new MockHttpServletResponse();
+        chain = new MockFilterChain();
     }
 
     @AfterEach
     void tearDown() {
         MDC.clear();
+        SecurityContextHolder.clearContext();
     }
 
     @Test
     void shouldGenerateCorrelationIdWhenNotPresent() throws Exception {
-        var request = new MockHttpServletRequest();
-        var response = new MockHttpServletResponse();
-        var chain = new MockFilterChain();
-
         filter.doFilterInternal(request, response, chain);
 
         assertThat(response.getHeader("X-Correlation-Id"))
@@ -41,10 +49,7 @@ class CorrelationIdFilterTest {
     @Test
     void shouldReuseCorrelationIdFromRequest() throws Exception {
         String existingId = "trace-abc-123";
-        var request = new MockHttpServletRequest();
         request.addHeader("X-Correlation-Id", existingId);
-        var response = new MockHttpServletResponse();
-        var chain = new MockFilterChain();
 
         filter.doFilterInternal(request, response, chain);
 
@@ -53,10 +58,6 @@ class CorrelationIdFilterTest {
 
     @Test
     void shouldClearMdcAfterRequest() throws Exception {
-        var request = new MockHttpServletRequest();
-        var response = new MockHttpServletResponse();
-        var chain = new MockFilterChain();
-
         filter.doFilterInternal(request, response, chain);
 
         assertThat(MDC.get("correlationId")).isNull();
@@ -66,10 +67,8 @@ class CorrelationIdFilterTest {
     @Test
     void shouldSetCorrelationIdInMdcDuringRequest() throws Exception {
         var capturedId = new String[1];
-        var request = new MockHttpServletRequest();
         request.addHeader("X-Correlation-Id", "my-trace");
-        var response = new MockHttpServletResponse();
-        var chain = new MockFilterChain() {
+        var capturingChain = new MockFilterChain() {
             @Override
             public void doFilter(jakarta.servlet.ServletRequest req, jakarta.servlet.ServletResponse res)
                     throws java.io.IOException, jakarta.servlet.ServletException {
@@ -78,8 +77,62 @@ class CorrelationIdFilterTest {
             }
         };
 
-        filter.doFilterInternal(request, response, chain);
+        filter.doFilterInternal(request, response, capturingChain);
 
         assertThat(capturedId[0]).isEqualTo("my-trace");
+    }
+
+    @Test
+    void shouldGenerateNewIdWhenHeaderIsBlank() throws Exception {
+        request.addHeader("X-Correlation-Id", "   ");
+
+        filter.doFilterInternal(request, response, chain);
+
+        assertThat(response.getHeader("X-Correlation-Id"))
+            .isNotBlank()
+            .matches("[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}");
+    }
+
+    @Test
+    void shouldSetUserIdInMdcWhenAuthenticated() throws Exception {
+        var jwt = Jwt.withTokenValue("token")
+            .header("alg", "RS256")
+            .subject("user-42")
+            .issuedAt(java.time.Instant.now())
+            .expiresAt(java.time.Instant.now().plusSeconds(60))
+            .build();
+        var auth = new JwtAuthenticationToken(jwt, List.of());
+        SecurityContextHolder.getContext().setAuthentication(auth);
+
+        var capturedUserId = new String[1];
+        var capturingChain = new MockFilterChain() {
+            @Override
+            public void doFilter(jakarta.servlet.ServletRequest req, jakarta.servlet.ServletResponse res)
+                    throws java.io.IOException, jakarta.servlet.ServletException {
+                capturedUserId[0] = MDC.get("userId");
+            }
+        };
+
+        filter.doFilterInternal(request, response, capturingChain);
+
+        assertThat(capturedUserId[0]).isEqualTo("user-42");
+    }
+
+    @Test
+    void shouldNotSetUserIdInMdcWhenUnauthenticated() throws Exception {
+        SecurityContextHolder.clearContext();
+
+        var capturedUserId = new String[1];
+        var capturingChain = new MockFilterChain() {
+            @Override
+            public void doFilter(jakarta.servlet.ServletRequest req, jakarta.servlet.ServletResponse res)
+                    throws java.io.IOException, jakarta.servlet.ServletException {
+                capturedUserId[0] = MDC.get("userId");
+            }
+        };
+
+        filter.doFilterInternal(request, response, capturingChain);
+
+        assertThat(capturedUserId[0]).isNull();
     }
 }

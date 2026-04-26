@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Map;
 import java.util.UUID;
 
 @Component
@@ -23,22 +24,39 @@ public class CorrelationIdFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain chain) throws ServletException, IOException {
+        Map<String, String> previousMdc = MDC.getCopyOfContextMap();
         try {
-            String correlationId = request.getHeader(CORRELATION_ID_HEADER);
-            if (correlationId == null || correlationId.isBlank()) {
+            String raw = request.getHeader(CORRELATION_ID_HEADER);
+            String correlationId;
+            if (raw == null || raw.isBlank()) {
                 correlationId = UUID.randomUUID().toString();
+            } else {
+                // Strip control characters and enforce length
+                String sanitized = raw.replaceAll("[\\r\\n]", "").strip();
+                if (sanitized.isBlank() || sanitized.length() > 64) {
+                    correlationId = UUID.randomUUID().toString();
+                } else {
+                    correlationId = sanitized;
+                }
             }
             MDC.put("correlationId", correlationId);
 
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             if (auth != null && auth.getPrincipal() instanceof Jwt jwt) {
-                MDC.put("userId", jwt.getSubject());
+                String userId = jwt.getSubject();
+                if (userId != null) {
+                    MDC.put("userId", userId);
+                }
             }
 
             response.setHeader(CORRELATION_ID_HEADER, correlationId);
             chain.doFilter(request, response);
         } finally {
-            MDC.clear();
+            if (previousMdc == null) {
+                MDC.clear();
+            } else {
+                MDC.setContextMap(previousMdc);
+            }
         }
     }
 }
