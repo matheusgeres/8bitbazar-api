@@ -45,7 +45,9 @@ src/main/java/br/com/eightbitbazar/
 │   │   └── out/         # Interfaces dos Repositories
 │   └── usecase/         # Implementação dos Use Cases
 └── adapter/
-    ├── in/web/          # Controllers (REST API)
+    ├── in/
+    │   ├── web/         # Controllers (REST API)
+    │   └── scheduling/  # Schedulers (ex: fechamento de leilões)
     └── out/
         ├── persistence/ # JPA Repositories
         ├── storage/     # MinIO Adapter
@@ -158,8 +160,8 @@ A documentação interativa permite testar os endpoints diretamente no navegador
 
 ### Compras
 - `POST /api/v1/listings/{id}/purchase` - Compra direta
-- `GET /api/v1/users/me/purchases` - Minhas compras *(plano futuro)*
-- `GET /api/v1/users/me/sales` - Minhas vendas *(plano futuro)*
+- `GET /api/v1/users/me/purchases` - Minhas compras (paginado, ordenado por data decrescente)
+- `GET /api/v1/users/me/sales` - Minhas vendas (paginado, ordenado por data decrescente)
 
 ### Admin
 - `POST /api/v1/admin/platforms` - Criar plataforma
@@ -205,8 +207,14 @@ Authorization: Bearer <access-token>
 ## 🧪 Testes
 
 ```bash
+# Padrão (Docker)
 ./gradlew test
+
+# Podman rootless (Testcontainers)
+./gradlew test -Dspring.profiles.active=local-podman
 ```
+
+> **Nota:** o scheduler de fechamento de leilões é desabilitado por padrão (`app.auctions.closing.enabled=false`). Para habilitá-lo em ambiente local, defina `app.auctions.closing.enabled=true` em `application.yml` ou via variável de ambiente.
 
 ## 📄 Licença
 
