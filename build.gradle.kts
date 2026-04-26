@@ -2,7 +2,7 @@ import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 
 plugins {
     java
-    id("org.springframework.boot") version "4.0.0"
+    id("org.springframework.boot") version "4.0.6"
     id("io.spring.dependency-management") version "1.1.7"
 }
 
@@ -29,10 +29,10 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-security-oauth2-resource-server")
 
     // Database
-    runtimeOnly("com.mysql:mysql-connector-j:8.4.0")
+    runtimeOnly("com.mysql:mysql-connector-j:9.7.0")
 
     // AWS S3 SDK (MinIO compatible)
-    implementation("software.amazon.awssdk:s3:2.39.1")
+    implementation("software.amazon.awssdk:s3:2.42.39")
 
     // RabbitMQ
     implementation("org.springframework.boot:spring-boot-starter-amqp")
@@ -46,7 +46,7 @@ dependencies {
     implementation("io.micrometer:micrometer-registry-prometheus")
 
     // API Documentation
-    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.0")
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.3")
 
     // Utilities
     compileOnly("org.projectlombok:lombok")
@@ -59,12 +59,12 @@ dependencies {
     testImplementation("org.springframework.security:spring-security-test")
 
     // Testcontainers
-    testImplementation("org.testcontainers:testcontainers:2.0.2")
-    testImplementation("org.testcontainers:testcontainers-junit-jupiter:2.0.2")
-    testImplementation("org.testcontainers:testcontainers-mysql:2.0.2")
-    testImplementation("org.testcontainers:testcontainers-rabbitmq:2.0.2")
-    testImplementation("org.testcontainers:testcontainers-elasticsearch:2.0.2")
-    testImplementation("org.testcontainers:testcontainers-minio:2.0.2")
+    testImplementation("org.testcontainers:testcontainers:2.0.5")
+    testImplementation("org.testcontainers:testcontainers-junit-jupiter:2.0.5")
+    testImplementation("org.testcontainers:testcontainers-mysql:2.0.5")
+    testImplementation("org.testcontainers:testcontainers-rabbitmq:2.0.5")
+    testImplementation("org.testcontainers:testcontainers-elasticsearch:2.0.5")
+    testImplementation("org.testcontainers:testcontainers-minio:2.0.5")
 }
 
 tasks.withType<Test> {
