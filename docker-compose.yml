@@ -1,6 +1,6 @@
 services:
   mysql:
-    image: mysql:8.4.7
+    image: mysql:9.6.0
     container_name: eightbitbazar-mysql
     ports:
       - "3306:3306"
@@ -18,7 +18,7 @@ services:
       retries: 5
 
   liquibase:
-    image: liquibase/liquibase:4.25.1
+    image: liquibase/liquibase:5.0.2
     container_name: eightbitbazar-liquibase
     depends_on:
       mysql:
@@ -31,12 +31,12 @@ services:
       - --username=root
       - --password=root
       - --changelog-file=changelog/db.changelog-master.xml
-      - --classpath=/drivers/mysql-connector-j-8.4.0.jar
+      - --classpath=/drivers/mysql-connector-j-9.7.0.jar
       - --driver=com.mysql.cj.jdbc.Driver
       - update
 
   elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:9.0.0
+    image: docker.elastic.co/elasticsearch/elasticsearch:9.3.3
     container_name: eightbitbazar-elasticsearch
     environment:
       - discovery.type=single-node
@@ -61,7 +61,7 @@ services:
       - minio_data:/data
 
   rabbitmq:
-    image: rabbitmq:3-management
+    image: rabbitmq:4.2.5-management
     container_name: eightbitbazar-rabbitmq
     ports:
       - "5672:5672"
@@ -73,7 +73,7 @@ services:
       - rabbitmq_data:/var/lib/rabbitmq
 
   prometheus:
-    image: prom/prometheus:v2.48.0
+    image: prom/prometheus:v3.11.2
     container_name: eightbitbazar-prometheus
     ports:
       - "9090:9090"
@@ -88,7 +88,7 @@ services:
       - "host.docker.internal:host-gateway"
 
   grafana:
-    image: grafana/grafana:10.2.2
+    image: grafana/grafana:13.1.0
     container_name: eightbitbazar-grafana
     ports:
       - "3001:3000"
