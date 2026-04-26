@@ -127,6 +127,7 @@ public class ListingController {
         UserId sellerId = new UserId(Long.parseLong(jwt.getSubject()));
         log.warn("listing.delete.requested", kv("listingId", id), kv("sellerId", sellerId.value()));
         deleteListingUseCase.execute(sellerId, new ListingId(id));
+        log.warn("listing.deleted", kv("listingId", id), kv("sellerId", sellerId.value()));
         return ResponseEntity.noContent().build();
     }
 
