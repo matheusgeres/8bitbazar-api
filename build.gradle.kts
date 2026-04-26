@@ -29,7 +29,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-security-oauth2-resource-server")
 
     // Database
-    runtimeOnly("com.mysql:mysql-connector-j:9.7.0")
+    runtimeOnly("com.mysql:mysql-connector-j:8.4.0")
 
     // AWS S3 SDK (MinIO compatible)
     implementation("software.amazon.awssdk:s3:2.42.39")
