@@ -9,6 +9,7 @@ import br.com.eightbitbazar.domain.purchase.Purchase;
 import br.com.eightbitbazar.domain.user.UserId;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 
 import java.util.Map;
 import java.util.Set;
@@ -27,7 +28,10 @@ public class GetMyPurchases implements GetMyPurchasesUseCase {
 
     @Override
     public Page<UserTradeHistoryItemOutput> execute(UserId userId, int page, int size) {
-        Page<Purchase> purchases = purchaseRepository.findByBuyerId(userId, PageRequest.of(page, size));
+        Page<Purchase> purchases = purchaseRepository.findByBuyerId(
+            userId,
+            PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"))
+        );
         Map<ListingId, Listing> listingsById = loadListings(purchases);
 
         return purchases.map(purchase -> toOutput(purchase, listingsById.get(purchase.listingId())));
