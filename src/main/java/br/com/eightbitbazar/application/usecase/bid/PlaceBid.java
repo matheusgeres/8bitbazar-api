@@ -69,8 +69,6 @@ public class PlaceBid implements PlaceBidUseCase {
             throw new BusinessException("This auction has ended");
         }
 
-        log.info("bid.placing", kv("listingId", input.listingId()), kv("userId", userId.value()), kv("amount", input.amount()));
-
         if (listing.sellerId().equals(userId)) {
             throw new BusinessException("You cannot bid on your own listing");
         }
@@ -87,6 +85,8 @@ public class PlaceBid implements PlaceBidUseCase {
         if (listing.buyNowPrice() != null && input.amount().compareTo(listing.buyNowPrice()) >= 0) {
             return convertToPurchase(listing, userId, listingId);
         }
+
+        log.info("bid.placing", kv("listingId", input.listingId()), kv("userId", userId.value()), kv("amount", input.amount()));
 
         Bid bid = new Bid(
             null,
@@ -135,11 +135,11 @@ public class PlaceBid implements PlaceBidUseCase {
 
         Purchase savedPurchase = purchaseRepository.save(purchase);
 
-        log.info("bid.converted_to_purchase", kv("listingId", listingId.value()), kv("buyerId", buyerId.value()), kv("purchaseId", savedPurchase.id()), kv("amount", price));
-
         // Mark listing as sold
         Listing soldListing = listing.withStatus(ListingStatus.SOLD).withQuantity(0);
         listingRepository.save(soldListing);
+
+        log.info("bid.converted_to_purchase", kv("listingId", listingId.value()), kv("buyerId", buyerId.value()), kv("purchaseId", savedPurchase.id()), kv("amount", price));
 
         // Publish events
         eventPublisher.publish(new ListingSoldEvent(

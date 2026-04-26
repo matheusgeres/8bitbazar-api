@@ -76,10 +76,11 @@ public class CloseExpiredAuctions implements CloseExpiredAuctionsUseCase {
             return;
         }
 
-        log.info("auction.closing.expired", kv("listingId", listing.id().value()));
-
         Listing expiredListing = listing.withStatus(ListingStatus.EXPIRED);
         listingRepository.save(expiredListing);
+
+        log.info("auction.closing.expired", kv("listingId", listing.id().value()));
+
         eventPublisher.publish(new AuctionEndedEvent(
             listing.id().value(),
             listing.sellerId().value(),
@@ -89,8 +90,6 @@ public class CloseExpiredAuctions implements CloseExpiredAuctionsUseCase {
     }
 
     private void closeWithWinner(Listing listing, Bid highestBid) {
-        log.info("auction.closing.with_winner", kv("listingId", listing.id().value()), kv("winnerId", highestBid.userId().value()), kv("amount", highestBid.amount()));
-
         Purchase savedPurchase = purchaseRepository.save(new Purchase(
             null,
             listing.id(),
@@ -107,6 +106,8 @@ public class CloseExpiredAuctions implements CloseExpiredAuctionsUseCase {
 
         Listing soldListing = listing.withStatus(ListingStatus.SOLD).withQuantity(0);
         listingRepository.save(soldListing);
+
+        log.info("auction.closing.with_winner", kv("listingId", listing.id().value()), kv("winnerId", highestBid.userId().value()), kv("amount", highestBid.amount()));
 
         eventPublisher.publish(new AuctionEndedEvent(
             listing.id().value(),

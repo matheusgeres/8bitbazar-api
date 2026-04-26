@@ -100,8 +100,6 @@ public class DirectPurchase implements DirectPurchaseUseCase {
 
         Purchase savedPurchase = purchaseRepository.save(purchase);
 
-        log.info("purchase.placed", kv("purchaseId", savedPurchase.id()), kv("listingId", savedPurchase.listingId().value()), kv("finalAmount", savedPurchase.finalAmount()));
-
         // Update listing quantity
         int newQuantity = listing.quantity() - 1;
         boolean isSold = newQuantity <= 0;
@@ -109,6 +107,8 @@ public class DirectPurchase implements DirectPurchaseUseCase {
             ? listing.withStatus(ListingStatus.SOLD).withQuantity(0)
             : listing.withQuantity(newQuantity);
         listingRepository.save(updatedListing);
+
+        log.info("purchase.placed", kv("purchaseId", savedPurchase.id()), kv("listingId", savedPurchase.listingId().value()), kv("finalAmount", savedPurchase.finalAmount()));
 
         if (isSold) {
             eventPublisher.publish(new ListingSoldEvent(
