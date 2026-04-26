@@ -48,9 +48,10 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ErrorResponse> handleIllegalArgumentException(IllegalArgumentException ex) {
-        log.warn("illegal.argument", kv("message", ex.getMessage() != null ? ex.getMessage() : ex.toString()));
+        String message = ex.getMessage() != null ? ex.getMessage() : ex.toString();
+        log.warn("illegal.argument", kv("message", message));
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-            .body(new ErrorResponse(400, ex.getMessage()));
+            .body(new ErrorResponse(400, message));
     }
 
     @ExceptionHandler(BadCredentialsException.class)
