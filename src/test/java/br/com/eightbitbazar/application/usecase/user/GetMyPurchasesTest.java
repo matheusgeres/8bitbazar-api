@@ -20,6 +20,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -85,8 +86,9 @@ class GetMyPurchasesTest {
             null
         );
 
-        when(purchaseRepository.findByBuyerId(buyerId, PageRequest.of(0, 20)))
-            .thenReturn(new PageImpl<>(List.of(purchase), PageRequest.of(0, 20), 1));
+        PageRequest pageRequest = PageRequest.of(0, 20, Sort.by(Sort.Direction.DESC, "createdAt"));
+        when(purchaseRepository.findByBuyerId(buyerId, pageRequest))
+            .thenReturn(new PageImpl<>(List.of(purchase), pageRequest, 1));
         when(listingRepository.findByIds(Set.of(listingId))).thenReturn(List.of(listing));
 
         Page<UserTradeHistoryItemOutput> output = getMyPurchases.execute(buyerId, 0, 20);
@@ -103,7 +105,7 @@ class GetMyPurchasesTest {
         assertEquals("PENDING", output.getContent().get(0).purchaseStatus());
         assertEquals(LocalDateTime.of(2026, 3, 1, 10, 0), output.getContent().get(0).createdAt());
 
-        verify(purchaseRepository).findByBuyerId(buyerId, PageRequest.of(0, 20));
+        verify(purchaseRepository).findByBuyerId(buyerId, pageRequest);
         verify(listingRepository).findByIds(Set.of(listingId));
     }
 }

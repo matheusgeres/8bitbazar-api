@@ -125,6 +125,7 @@ public class UserController {
         @RequestParam(defaultValue = "0") int page,
         @RequestParam(defaultValue = "20") int size
     ) {
+        validatePagination(page, size);
         UserId userId = new UserId(Long.parseLong(jwt.getSubject()));
         Page<UserTradeHistoryResponse> response = getMyPurchasesUseCase.execute(userId, page, size)
             .map(this::toTradeHistoryResponse);
@@ -137,10 +138,20 @@ public class UserController {
         @RequestParam(defaultValue = "0") int page,
         @RequestParam(defaultValue = "20") int size
     ) {
+        validatePagination(page, size);
         UserId userId = new UserId(Long.parseLong(jwt.getSubject()));
         Page<UserTradeHistoryResponse> response = getMySalesUseCase.execute(userId, page, size)
             .map(this::toTradeHistoryResponse);
         return ResponseEntity.ok(response);
+    }
+
+    private void validatePagination(int page, int size) {
+        if (page < 0) {
+            throw new IllegalArgumentException("Page must be greater than or equal to 0");
+        }
+        if (size < 1 || size > 100) {
+            throw new IllegalArgumentException("Size must be between 1 and 100");
+        }
     }
 
     private UserTradeHistoryResponse toTradeHistoryResponse(UserTradeHistoryItemOutput output) {

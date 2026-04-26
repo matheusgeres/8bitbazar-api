@@ -129,4 +129,109 @@ class UserTradeHistoryIntegrationTest extends IntegrationTestBase {
             .andExpect(jsonPath("$.content[0].paymentMethod").value("CREDIT_CARD"))
             .andExpect(jsonPath("$.content[0].purchaseStatus").value("PENDING"));
     }
+
+    @Test
+    void shouldRejectInvalidPurchasesPagination() throws Exception {
+        String adminToken = IntegrationTestFixtures.loginAsAdmin(mockMvc, jsonMapper);
+
+        mockMvc.perform(get("/api/v1/users/me/purchases")
+                .header("Authorization", "Bearer " + adminToken)
+                .param("page", "-1"))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.message").value("Page must be greater than or equal to 0"));
+
+        mockMvc.perform(get("/api/v1/users/me/purchases")
+                .header("Authorization", "Bearer " + adminToken)
+                .param("size", "101"))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.message").value("Size must be between 1 and 100"));
+    }
+
+    @Test
+    void shouldRejectInvalidSalesPagination() throws Exception {
+        String adminToken = IntegrationTestFixtures.loginAsAdmin(mockMvc, jsonMapper);
+
+        mockMvc.perform(get("/api/v1/users/me/sales")
+                .header("Authorization", "Bearer " + adminToken)
+                .param("page", "-1"))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.message").value("Page must be greater than or equal to 0"));
+
+        mockMvc.perform(get("/api/v1/users/me/sales")
+                .header("Authorization", "Bearer " + adminToken)
+                .param("size", "0"))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.message").value("Size must be between 1 and 100"));
+    }
+
+    @Test
+    void shouldListPurchasesNewestFirst() throws Exception {
+        String suffix = Long.toString(System.nanoTime());
+        String adminToken = IntegrationTestFixtures.loginAsAdmin(mockMvc, jsonMapper);
+        Long platformId = IntegrationTestFixtures.createPlatform(mockMvc, jsonMapper, adminToken, "Newest First Platform " + suffix);
+        Long manufacturerId = IntegrationTestFixtures.createManufacturer(mockMvc, jsonMapper, adminToken, "Newest First Manufacturer " + suffix);
+        String sellerToken = IntegrationTestFixtures.registerAndLogin(
+            mockMvc, jsonMapper, "seller-newest-" + suffix + "@test.com", "Seller@123", "sellernewest" + suffix, true
+        );
+        String buyerToken = IntegrationTestFixtures.registerAndLogin(
+            mockMvc, jsonMapper, "buyer-newest-" + suffix + "@test.com", "Buyer@123", "buyernewest" + suffix, false
+        );
+
+        Long firstListingId = IntegrationTestFixtures.createListing(
+            mockMvc,
+            jsonMapper,
+            sellerToken,
+            new CreateListingRequest(
+                "First Chrono Trigger",
+                "First purchase",
+                platformId,
+                manufacturerId,
+                "COMPLETE",
+                1,
+                "DIRECT_SALE",
+                new BigDecimal("100.00"),
+                null,
+                null,
+                null,
+                null
+            )
+        );
+        Long secondListingId = IntegrationTestFixtures.createListing(
+            mockMvc,
+            jsonMapper,
+            sellerToken,
+            new CreateListingRequest(
+                "Second Chrono Trigger",
+                "Second purchase",
+                platformId,
+                manufacturerId,
+                "COMPLETE",
+                1,
+                "DIRECT_SALE",
+                new BigDecimal("120.00"),
+                null,
+                null,
+                null,
+                null
+            )
+        );
+
+        mockMvc.perform(post("/api/v1/listings/" + firstListingId + "/purchase")
+                .header("Authorization", "Bearer " + buyerToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"paymentMethod\":\"PIX\"}"))
+            .andExpect(status().isCreated());
+
+        mockMvc.perform(post("/api/v1/listings/" + secondListingId + "/purchase")
+                .header("Authorization", "Bearer " + buyerToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"paymentMethod\":\"PIX\"}"))
+            .andExpect(status().isCreated());
+
+        mockMvc.perform(get("/api/v1/users/me/purchases")
+                .header("Authorization", "Bearer " + buyerToken))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.content[0].listingId").value(secondListingId))
+            .andExpect(jsonPath("$.content[1].listingId").value(firstListingId));
+    }
 }
