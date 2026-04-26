@@ -37,19 +37,24 @@ public class UseCaseConfig {
     }
 
     @Bean
+    public UserTradeHistoryMapper userTradeHistoryMapper(ListingRepository listingRepository) {
+        return new UserTradeHistoryMapper(listingRepository);
+    }
+
+    @Bean
     public GetMyPurchasesUseCase getMyPurchasesUseCase(
         PurchaseRepository purchaseRepository,
-        ListingRepository listingRepository
+        UserTradeHistoryMapper userTradeHistoryMapper
     ) {
-        return new GetMyPurchases(purchaseRepository, listingRepository);
+        return new GetMyPurchases(purchaseRepository, userTradeHistoryMapper);
     }
 
     @Bean
     public GetMySalesUseCase getMySalesUseCase(
         PurchaseRepository purchaseRepository,
-        ListingRepository listingRepository
+        UserTradeHistoryMapper userTradeHistoryMapper
     ) {
-        return new GetMySales(purchaseRepository, listingRepository);
+        return new GetMySales(purchaseRepository, userTradeHistoryMapper);
     }
 
     // Listing Use Cases
