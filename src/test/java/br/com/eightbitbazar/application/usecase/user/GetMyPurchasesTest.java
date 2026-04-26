@@ -44,7 +44,8 @@ class GetMyPurchasesTest {
 
     @BeforeEach
     void setUp() {
-        getMyPurchases = new GetMyPurchases(purchaseRepository, listingRepository);
+        UserTradeHistoryMapper tradeHistoryMapper = new UserTradeHistoryMapper(listingRepository);
+        getMyPurchases = new GetMyPurchases(purchaseRepository, tradeHistoryMapper);
     }
 
     @Test
