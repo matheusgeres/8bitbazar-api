@@ -53,7 +53,8 @@ public class MinioStorageAdapter implements ImageStorage {
         } catch (Exception e) {
             log.error("storage.upload.failed",
                 kv("filename", filename),
-                kv("error", e.getMessage() != null ? e.getMessage() : e.toString()));
+                kv("error", e.getMessage() != null ? e.getMessage() : e.toString()),
+                e);
             throw e;
         }
     }

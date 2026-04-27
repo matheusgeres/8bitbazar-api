@@ -79,7 +79,8 @@ public class ElasticsearchListingSearchAdapter implements ListingSearchRepositor
             return new PageImpl<>(results, pageable, searchHits.getTotalHits());
         } catch (Exception e) {
             log.error("search.query.failed",
-                kv("error", e.getMessage() != null ? e.getMessage() : e.toString()));
+                kv("error", e.getMessage() != null ? e.getMessage() : e.toString()),
+                e);
             throw e;
         }
     }
@@ -92,7 +93,8 @@ public class ElasticsearchListingSearchAdapter implements ListingSearchRepositor
         } catch (Exception e) {
             log.error("search.index.failed",
                 kv("listingId", listing.id()),
-                kv("error", e.getMessage() != null ? e.getMessage() : e.toString()));
+                kv("error", e.getMessage() != null ? e.getMessage() : e.toString()),
+                e);
             throw e;
         }
     }
@@ -104,7 +106,8 @@ public class ElasticsearchListingSearchAdapter implements ListingSearchRepositor
         } catch (Exception e) {
             log.error("search.delete.failed",
                 kv("listingId", listingId),
-                kv("error", e.getMessage() != null ? e.getMessage() : e.toString()));
+                kv("error", e.getMessage() != null ? e.getMessage() : e.toString()),
+                e);
             throw e;
         }
     }
