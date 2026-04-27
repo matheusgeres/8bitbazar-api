@@ -22,7 +22,14 @@ public class AuctionClosingScheduler {
     @Scheduled(fixedDelayString = "${app.auctions.closing.fixed-delay:60000}")
     public void closeExpiredAuctions() {
         log.info("scheduler.auction_closing.started");
-        int processed = closeExpiredAuctionsUseCase.execute();
-        log.info("scheduler.auction_closing.finished", kv("processed", processed));
+        try {
+            int processed = closeExpiredAuctionsUseCase.execute();
+            log.info("scheduler.auction_closing.finished", kv("processed", processed));
+        } catch (Exception e) {
+            log.error("scheduler.auction_closing.failed",
+                kv("error", e.getMessage() != null ? e.getMessage() : e.toString()),
+                e);
+            throw e;
+        }
     }
 }
