@@ -15,6 +15,7 @@ import br.com.eightbitbazar.domain.platform.Platform;
 import br.com.eightbitbazar.domain.user.User;
 import tools.jackson.databind.json.JsonMapper;
 import lombok.extern.slf4j.Slf4j;
+import static net.logstash.logback.argument.StructuredArguments.kv;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
@@ -55,21 +56,21 @@ public class BidEventListener {
         String eventType = message.getMessageProperties().getHeader("eventType");
         String body = new String(message.getBody());
 
-        log.info("Received bid event: {}", eventType);
+        log.info("bid.event.received", kv("eventType", eventType));
 
         try {
             if ("bid.placed".equals(eventType)) {
                 handleBidPlaced(jsonMapper.readValue(body, BidPlacedEvent.class));
             } else {
-                log.warn("Unknown bid event type: {}", eventType);
+                log.warn("bid.event.unknown", kv("eventType", eventType));
             }
         } catch (Exception e) {
-            log.error("Failed to process bid event: {}", eventType, e);
+            log.error("bid.event.failed", kv("eventType", eventType), kv("error", e.getMessage() != null ? e.getMessage() : e.toString()), e);
         }
     }
 
     private void handleBidPlaced(BidPlacedEvent event) {
-        log.info("Processing bid placed for listing: {}", event.listingId());
+        log.info("bid.event.processing", kv("listingId", event.listingId()));
 
         Listing listing = listingRepository.findById(new ListingId(event.listingId()))
                 .orElseThrow(() -> new IllegalStateException("Listing not found: " + event.listingId()));
@@ -107,6 +108,6 @@ public class BidEventListener {
         );
 
         listingSearchRepository.index(searchResult);
-        log.info("Successfully reindexed listing after bid: {}", event.listingId());
+        log.info("bid.reindex.completed", kv("listingId", event.listingId()));
     }
 }

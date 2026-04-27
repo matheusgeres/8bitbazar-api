@@ -38,19 +38,19 @@ public class MetricsEventListener {
         switch (eventType) {
             case "listing.created" -> {
                 listingsCreatedCounter.increment();
-                log.debug("Incremented listings created counter");
+                log.debug("metrics.listings_created.incremented");
             }
             case "listing.sold" -> {
                 listingsSoldCounter.increment();
-                log.debug("Incremented listings sold counter");
+                log.debug("metrics.listings_sold.incremented");
             }
             case "bid.placed" -> {
                 bidsPlacedCounter.increment();
-                log.debug("Incremented bids placed counter");
+                log.debug("metrics.bids_placed.incremented");
             }
             case "purchase.completed" -> {
                 purchasesCompletedCounter.increment();
-                log.debug("Incremented purchases completed counter");
+                log.debug("metrics.purchases_completed.incremented");
             }
         }
     }
