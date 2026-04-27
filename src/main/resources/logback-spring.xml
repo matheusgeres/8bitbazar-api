@@ -32,4 +32,13 @@
         </root>
     </springProfile>
 
+    <springProfile name="!dev &amp; !local &amp; !local-podman &amp; !test &amp; !prod">
+        <appender name="FALLBACK" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder class="net.logstash.logback.encoder.LogstashEncoder"/>
+        </appender>
+        <root level="INFO">
+            <appender-ref ref="FALLBACK"/>
+        </root>
+    </springProfile>
+
 </configuration>

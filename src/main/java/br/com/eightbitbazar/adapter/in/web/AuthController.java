@@ -76,7 +76,6 @@ public class AuthController {
         );
 
         RegisterUserOutput output = registerUserUseCase.execute(input);
-        log.info("user.registered", kv("userId", output.id()));
 
         RegisterUserResponse response = new RegisterUserResponse(
             output.id(),

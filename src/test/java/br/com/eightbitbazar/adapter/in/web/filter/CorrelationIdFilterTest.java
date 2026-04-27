@@ -119,20 +119,23 @@ class CorrelationIdFilterTest {
     }
 
     @Test
-    void shouldNotSetUserIdInMdcWhenUnauthenticated() throws Exception {
-        SecurityContextHolder.clearContext();
+    void shouldSanitizeCRLFFromCorrelationIdHeader() throws Exception {
+        request.addHeader("X-Correlation-Id", "valid-id\r\nX-Injected: header");
 
-        var capturedUserId = new String[1];
-        var capturingChain = new MockFilterChain() {
-            @Override
-            public void doFilter(jakarta.servlet.ServletRequest req, jakarta.servlet.ServletResponse res)
-                    throws java.io.IOException, jakarta.servlet.ServletException {
-                capturedUserId[0] = MDC.get("userId");
-            }
-        };
+        filter.doFilterInternal(request, response, chain);
 
-        filter.doFilterInternal(request, response, capturingChain);
+        assertThat(response.getHeader("X-Correlation-Id"))
+            .doesNotContain("\r", "\n")
+            .isEqualTo("valid-idX-Injected: header");
+    }
 
-        assertThat(capturedUserId[0]).isNull();
+    @Test
+    void shouldGenerateNewIdWhenHeaderExceedsMaxLength() throws Exception {
+        request.addHeader("X-Correlation-Id", "a".repeat(65));
+
+        filter.doFilterInternal(request, response, chain);
+
+        assertThat(response.getHeader("X-Correlation-Id"))
+            .matches("[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}");
     }
 }

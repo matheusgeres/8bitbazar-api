@@ -95,7 +95,6 @@ public class ListingController {
 
         log.info("listing.create.requested", kv("sellerId", sellerId.value()), kv("type", input.type()), kv("name", input.name()));
         CreateListingOutput output = createListingUseCase.execute(sellerId, input);
-        log.info("listing.created", kv("listingId", output.id()), kv("sellerId", sellerId.value()));
 
         ListingResponse response = new ListingResponse(
             output.id(),
@@ -127,7 +126,6 @@ public class ListingController {
         UserId sellerId = new UserId(Long.parseLong(jwt.getSubject()));
         log.warn("listing.delete.requested", kv("listingId", id), kv("sellerId", sellerId.value()));
         deleteListingUseCase.execute(sellerId, new ListingId(id));
-        log.warn("listing.deleted", kv("listingId", id), kv("sellerId", sellerId.value()));
         return ResponseEntity.noContent().build();
     }
 
