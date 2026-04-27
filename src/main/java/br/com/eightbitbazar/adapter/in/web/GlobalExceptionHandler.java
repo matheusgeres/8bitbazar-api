@@ -4,7 +4,7 @@ import br.com.eightbitbazar.adapter.in.web.dto.ErrorResponse;
 import br.com.eightbitbazar.domain.exception.BusinessException;
 import br.com.eightbitbazar.domain.exception.NotFoundException;
 import lombok.extern.slf4j.Slf4j;
-import net.logstash.logback.argument.StructuredArguments;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;

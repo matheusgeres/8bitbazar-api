@@ -4,7 +4,6 @@ import br.com.eightbitbazar.adapter.in.web.filter.CorrelationIdFilter;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.Ordered;
 
 @Configuration
 public class FilterConfig {
@@ -13,7 +12,7 @@ public class FilterConfig {
     public FilterRegistrationBean<CorrelationIdFilter> correlationIdFilterRegistration(
             CorrelationIdFilter filter) {
         var reg = new FilterRegistrationBean<>(filter);
-        reg.setOrder(Ordered.HIGHEST_PRECEDENCE);
+        reg.setOrder(-50);
         return reg;
     }
 }

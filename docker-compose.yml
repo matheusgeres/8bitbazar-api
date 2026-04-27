@@ -132,7 +132,3 @@ volumes:
   grafana_data:
   loki_data:
   promtail_positions:
-
-networks:
-  app-network:
-    driver: bridge
