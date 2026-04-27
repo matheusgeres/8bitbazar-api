@@ -95,7 +95,6 @@ public class UserController {
         );
 
         UpdateUserProfileOutput output = updateUserProfileUseCase.execute(userId, input);
-        log.info("user.profile.updated", kv("userId", userId.value()));
 
         UserResponse response = new UserResponse(
             output.id(),
@@ -122,7 +121,6 @@ public class UserController {
         UserId userId = new UserId(Long.parseLong(jwt.getSubject()));
         log.warn("user.delete.requested", kv("userId", userId.value()));
         deleteUserUseCase.execute(userId);
-        log.warn("user.deleted", kv("userId", userId.value()));
         return ResponseEntity.noContent().build();
     }
 
