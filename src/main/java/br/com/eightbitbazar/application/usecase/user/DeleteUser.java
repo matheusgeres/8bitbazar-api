@@ -22,11 +22,11 @@ public class DeleteUser implements DeleteUserUseCase {
 
     @Override
     public void execute(UserId userId) {
-        log.warn("user.deleting", kv("userId", userId.value()));
-
         User user = userRepository.findById(userId)
             .filter(u -> !u.isDeleted())
             .orElseThrow(() -> new NotFoundException("User not found"));
+
+        log.warn("user.deleting", kv("userId", userId.value()));
 
         User deletedUser = user.withDeletedAt(LocalDateTime.now());
         userRepository.save(deletedUser);
