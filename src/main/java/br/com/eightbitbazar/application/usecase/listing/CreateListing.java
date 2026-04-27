@@ -14,10 +14,14 @@ import br.com.eightbitbazar.domain.manufacturer.Manufacturer;
 import br.com.eightbitbazar.domain.platform.Platform;
 import br.com.eightbitbazar.domain.user.User;
 import br.com.eightbitbazar.domain.user.UserId;
+import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
+import static net.logstash.logback.argument.StructuredArguments.kv;
+
+@Slf4j
 public class CreateListing implements CreateListingUseCase {
 
     private final ListingRepository listingRepository;
@@ -84,6 +88,11 @@ public class CreateListing implements CreateListingUseCase {
         );
 
         Listing savedListing = listingRepository.save(listing);
+
+        log.info("listing.created",
+            kv("listingId", savedListing.id().value()),
+            kv("sellerId", sellerId.value()),
+            kv("type", savedListing.type().name()));
 
         eventPublisher.publish(new ListingCreatedEvent(
             savedListing.id().value(),

@@ -10,11 +10,15 @@ import br.com.eightbitbazar.domain.listing.Listing;
 import br.com.eightbitbazar.domain.listing.ListingId;
 import br.com.eightbitbazar.domain.listing.ListingImage;
 import br.com.eightbitbazar.domain.user.UserId;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import static net.logstash.logback.argument.StructuredArguments.kv;
+
+@Slf4j
 public class UploadListingImage implements UploadListingImageUseCase {
 
     private static final int MAX_IMAGES = 10;
@@ -60,6 +64,10 @@ public class UploadListingImage implements UploadListingImageUseCase {
 
             uploadedUrls.add(url);
         }
+
+        log.info("listing.images.uploaded",
+            kv("listingId", listingId.value()),
+            kv("count", uploadedUrls.size()));
 
         return uploadedUrls;
     }
