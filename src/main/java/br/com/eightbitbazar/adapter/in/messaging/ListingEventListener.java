@@ -17,6 +17,7 @@ import br.com.eightbitbazar.domain.platform.Platform;
 import br.com.eightbitbazar.domain.user.User;
 import tools.jackson.databind.json.JsonMapper;
 import lombok.extern.slf4j.Slf4j;
+import static net.logstash.logback.argument.StructuredArguments.kv;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
@@ -57,22 +58,22 @@ public class ListingEventListener {
         String eventType = message.getMessageProperties().getHeader("eventType");
         String body = new String(message.getBody());
 
-        log.info("Received listing event: {}", eventType);
+        log.info("listing.event.received", kv("eventType", eventType));
 
         try {
             switch (eventType) {
                 case "listing.created" -> handleListingCreated(jsonMapper.readValue(body, ListingCreatedEvent.class));
                 case "listing.deleted" -> handleListingDeleted(jsonMapper.readValue(body, ListingDeletedEvent.class));
                 case "listing.sold" -> handleListingSold(jsonMapper.readValue(body, ListingSoldEvent.class));
-                default -> log.warn("Unknown event type: {}", eventType);
+                default -> log.warn("listing.event.unknown", kv("eventType", eventType));
             }
         } catch (Exception e) {
-            log.error("Failed to process listing event: {}", eventType, e);
+            log.error("listing.event.failed", kv("eventType", eventType), kv("error", e.getMessage() != null ? e.getMessage() : e.toString()), e);
         }
     }
 
     private void handleListingCreated(ListingCreatedEvent event) {
-        log.info("Processing listing created: {}", event.listingId());
+        log.info("listing.created.processing", kv("listingId", event.listingId()));
 
         Listing listing = listingRepository.findById(new ListingId(event.listingId()))
                 .orElseThrow(() -> new IllegalStateException("Listing not found: " + event.listingId()));
@@ -110,18 +111,18 @@ public class ListingEventListener {
         );
 
         listingSearchRepository.index(searchResult);
-        log.info("Successfully indexed listing: {}", event.listingId());
+        log.info("listing.index.completed", kv("listingId", event.listingId()));
     }
 
     private void handleListingDeleted(ListingDeletedEvent event) {
-        log.info("Processing listing deleted: {}", event.listingId());
+        log.info("listing.deleted.processing", kv("listingId", event.listingId()));
         listingSearchRepository.delete(event.listingId());
-        log.info("Successfully removed listing from index: {}", event.listingId());
+        log.info("listing.index.removed", kv("listingId", event.listingId()));
     }
 
     private void handleListingSold(ListingSoldEvent event) {
-        log.info("Processing listing sold: {}", event.listingId());
+        log.info("listing.sold.processing", kv("listingId", event.listingId()));
         listingSearchRepository.delete(event.listingId());
-        log.info("Successfully removed sold listing from index: {}", event.listingId());
+        log.info("listing.sold.index.removed", kv("listingId", event.listingId()));
     }
 }
