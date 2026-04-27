@@ -2,7 +2,7 @@
   "__inputs": [],
   "__elements": {},
   "__requires": [
-    { "type": "grafana", "id": "grafana", "name": "Grafana", "version": "10.0.0" },
+    { "type": "grafana", "id": "grafana", "name": "Grafana", "version": "13.1.0" },
     { "type": "datasource", "id": "loki", "name": "Loki", "version": "1.0.0" }
   ],
   "annotations": { "list": [] },
@@ -79,7 +79,7 @@
       "targets": [
         {
           "datasource": { "type": "loki", "uid": "loki" },
-          "expr": "{job=\"eightbitbazar-api\"} | json | correlationId=`$correlationId`",
+          "expr": "{job=\"eightbitbazar-api\"} |= `$correlationId`",
           "queryType": "range",
           "refId": "A"
         }
