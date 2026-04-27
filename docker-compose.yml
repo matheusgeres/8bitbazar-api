@@ -95,20 +95,17 @@ services:
     volumes:
       - loki_data:/loki
     command: -config.file=/etc/loki/local-config.yaml
-    networks:
-      - app-network
 
   promtail:
     image: grafana/promtail:2.9.0
     container_name: eightbitbazar-promtail
     volumes:
       - ./monitoring/promtail/config.yml:/etc/promtail/config.yml:z
-      - /var/run/docker.sock:/var/run/docker.sock
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - promtail_positions:/var/promtail
     command: -config.file=/etc/promtail/config.yml
     depends_on:
       - loki
-    networks:
-      - app-network
 
   grafana:
     image: grafana/grafana:13.1.0
@@ -134,6 +131,7 @@ volumes:
   prometheus_data:
   grafana_data:
   loki_data:
+  promtail_positions:
 
 networks:
   app-network:
