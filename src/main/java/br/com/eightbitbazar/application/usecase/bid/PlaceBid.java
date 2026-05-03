@@ -19,11 +19,15 @@ import br.com.eightbitbazar.domain.purchase.Purchase;
 import br.com.eightbitbazar.domain.purchase.PurchaseStatus;
 import br.com.eightbitbazar.domain.purchase.PurchaseType;
 import br.com.eightbitbazar.domain.user.UserId;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+import static net.logstash.logback.argument.StructuredArguments.kv;
+
+@Slf4j
 @Transactional
 public class PlaceBid implements PlaceBidUseCase {
 
@@ -82,6 +86,8 @@ public class PlaceBid implements PlaceBidUseCase {
             return convertToPurchase(listing, userId, listingId);
         }
 
+        log.info("bid.placing", kv("listingId", input.listingId()), kv("userId", userId.value()), kv("amount", input.amount()));
+
         Bid bid = new Bid(
             null,
             listingId,
@@ -91,6 +97,8 @@ public class PlaceBid implements PlaceBidUseCase {
         );
 
         Bid savedBid = bidRepository.save(bid);
+
+        log.info("bid.saved", kv("bidId", savedBid.id()), kv("listingId", savedBid.listingId().value()), kv("userId", userId.value()));
 
         eventPublisher.publish(new BidPlacedEvent(
             savedBid.id(),
@@ -130,6 +138,8 @@ public class PlaceBid implements PlaceBidUseCase {
         // Mark listing as sold
         Listing soldListing = listing.withStatus(ListingStatus.SOLD).withQuantity(0);
         listingRepository.save(soldListing);
+
+        log.info("bid.converted_to_purchase", kv("listingId", listingId.value()), kv("buyerId", buyerId.value()), kv("purchaseId", savedPurchase.id()), kv("amount", price));
 
         // Publish events
         eventPublisher.publish(new ListingSoldEvent(

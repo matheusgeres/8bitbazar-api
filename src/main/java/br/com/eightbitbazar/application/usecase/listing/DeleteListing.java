@@ -10,9 +10,13 @@ import br.com.eightbitbazar.domain.listing.Listing;
 import br.com.eightbitbazar.domain.listing.ListingId;
 import br.com.eightbitbazar.domain.listing.ListingStatus;
 import br.com.eightbitbazar.domain.user.UserId;
+import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDateTime;
 
+import static net.logstash.logback.argument.StructuredArguments.kv;
+
+@Slf4j
 public class DeleteListing implements DeleteListingUseCase {
 
     private final ListingRepository listingRepository;
@@ -38,6 +42,10 @@ public class DeleteListing implements DeleteListingUseCase {
             .withDeletedAt(LocalDateTime.now());
 
         listingRepository.save(deletedListing);
+
+        log.warn("listing.deleted",
+            kv("listingId", listingId.value()),
+            kv("sellerId", sellerId.value()));
 
         eventPublisher.publish(new ListingDeletedEvent(
             listingId.value(),

@@ -87,6 +87,26 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
+  loki:
+    image: grafana/loki:2.9.0
+    container_name: eightbitbazar-loki
+    ports:
+      - "3100:3100"
+    volumes:
+      - loki_data:/loki
+    command: -config.file=/etc/loki/local-config.yaml
+
+  promtail:
+    image: grafana/promtail:2.9.0
+    container_name: eightbitbazar-promtail
+    volumes:
+      - ./monitoring/promtail/config.yml:/etc/promtail/config.yml:z
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - promtail_positions:/var/promtail
+    command: -config.file=/etc/promtail/config.yml
+    depends_on:
+      - loki
+
   grafana:
     image: grafana/grafana:13.1.0
     container_name: eightbitbazar-grafana
@@ -101,6 +121,7 @@ services:
       - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:z
     depends_on:
       - prometheus
+      - loki
 
 volumes:
   mysql_data:
@@ -109,7 +130,5 @@ volumes:
   rabbitmq_data:
   prometheus_data:
   grafana_data:
-
-networks:
-  app-network:
-    driver: bridge
+  loki_data:
+  promtail_positions:

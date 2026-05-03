@@ -7,9 +7,13 @@ import br.com.eightbitbazar.domain.exception.BusinessException;
 import br.com.eightbitbazar.domain.user.Address;
 import br.com.eightbitbazar.domain.user.Role;
 import br.com.eightbitbazar.domain.user.User;
+import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDateTime;
 
+import static net.logstash.logback.argument.StructuredArguments.kv;
+
+@Slf4j
 public class RegisterUser implements RegisterUserUseCase {
 
     private final UserRepository userRepository;
@@ -59,6 +63,8 @@ public class RegisterUser implements RegisterUserUseCase {
         );
 
         User savedUser = userRepository.save(user);
+
+        log.info("user.registered", kv("userId", savedUser.id().value()));
 
         return new RegisterUserOutput(
             savedUser.id().value(),

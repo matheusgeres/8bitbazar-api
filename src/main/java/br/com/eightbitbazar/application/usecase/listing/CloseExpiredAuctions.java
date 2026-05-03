@@ -16,12 +16,16 @@ import br.com.eightbitbazar.domain.purchase.PaymentMethod;
 import br.com.eightbitbazar.domain.purchase.Purchase;
 import br.com.eightbitbazar.domain.purchase.PurchaseStatus;
 import br.com.eightbitbazar.domain.purchase.PurchaseType;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+import static net.logstash.logback.argument.StructuredArguments.kv;
+
+@Slf4j
 @Transactional
 public class CloseExpiredAuctions implements CloseExpiredAuctionsUseCase {
 
@@ -44,6 +48,8 @@ public class CloseExpiredAuctions implements CloseExpiredAuctionsUseCase {
 
     @Override
     public int execute() {
+        log.info("auction.closing.started");
+
         LocalDateTime now = LocalDateTime.now();
         List<ListingId> candidateIds = listingRepository.findExpiredActiveAuctionIds(now);
 
@@ -56,6 +62,9 @@ public class CloseExpiredAuctions implements CloseExpiredAuctionsUseCase {
             closeAuction(lockedListing.get());
             processed++;
         }
+
+        log.info("auction.closing.finished", kv("processed", processed));
+
         return processed;
     }
 
@@ -69,6 +78,9 @@ public class CloseExpiredAuctions implements CloseExpiredAuctionsUseCase {
 
         Listing expiredListing = listing.withStatus(ListingStatus.EXPIRED);
         listingRepository.save(expiredListing);
+
+        log.info("auction.closing.expired", kv("listingId", listing.id().value()));
+
         eventPublisher.publish(new AuctionEndedEvent(
             listing.id().value(),
             listing.sellerId().value(),
@@ -94,6 +106,8 @@ public class CloseExpiredAuctions implements CloseExpiredAuctionsUseCase {
 
         Listing soldListing = listing.withStatus(ListingStatus.SOLD).withQuantity(0);
         listingRepository.save(soldListing);
+
+        log.info("auction.closing.with_winner", kv("listingId", listing.id().value()), kv("winnerId", highestBid.userId().value()), kv("amount", highestBid.amount()));
 
         eventPublisher.publish(new AuctionEndedEvent(
             listing.id().value(),

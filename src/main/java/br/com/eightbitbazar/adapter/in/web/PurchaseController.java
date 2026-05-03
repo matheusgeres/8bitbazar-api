@@ -6,12 +6,16 @@ import br.com.eightbitbazar.application.usecase.purchase.DirectPurchaseInput;
 import br.com.eightbitbazar.application.usecase.purchase.DirectPurchaseOutput;
 import br.com.eightbitbazar.domain.user.UserId;
 import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
+import static net.logstash.logback.argument.StructuredArguments.kv;
+
+@Slf4j
 @RestController
 @RequestMapping("/api/v1/listings/{listingId}/purchase")
 public class PurchaseController {
@@ -31,7 +35,9 @@ public class PurchaseController {
         UserId buyerId = new UserId(Long.parseLong(jwt.getSubject()));
 
         DirectPurchaseInput input = new DirectPurchaseInput(listingId, request.paymentMethod());
+        log.info("purchase.requested", kv("listingId", listingId), kv("buyerId", buyerId.value()), kv("paymentMethod", request.paymentMethod()));
         DirectPurchaseOutput output = directPurchaseUseCase.execute(buyerId, input);
+        log.info("purchase.completed", kv("purchaseId", output.id()), kv("listingId", listingId), kv("finalAmount", output.finalAmount()));
 
         return ResponseEntity.status(HttpStatus.CREATED).body(output);
     }

@@ -16,12 +16,16 @@ import br.com.eightbitbazar.domain.purchase.Purchase;
 import br.com.eightbitbazar.domain.purchase.PurchaseStatus;
 import br.com.eightbitbazar.domain.purchase.PurchaseType;
 import br.com.eightbitbazar.domain.user.UserId;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
 
+import static net.logstash.logback.argument.StructuredArguments.kv;
+
+@Slf4j
 @Transactional
 public class DirectPurchase implements DirectPurchaseUseCase {
 
@@ -78,6 +82,8 @@ public class DirectPurchase implements DirectPurchaseUseCase {
             finalAmount = price.subtract(discountApplied);
         }
 
+        log.info("purchase.placing", kv("listingId", input.listingId()), kv("buyerId", buyerId.value()), kv("paymentMethod", input.paymentMethod()));
+
         Purchase purchase = new Purchase(
             null,
             listingId,
@@ -101,6 +107,8 @@ public class DirectPurchase implements DirectPurchaseUseCase {
             ? listing.withStatus(ListingStatus.SOLD).withQuantity(0)
             : listing.withQuantity(newQuantity);
         listingRepository.save(updatedListing);
+
+        log.info("purchase.placed", kv("purchaseId", savedPurchase.id()), kv("listingId", savedPurchase.listingId().value()), kv("finalAmount", savedPurchase.finalAmount()));
 
         if (isSold) {
             eventPublisher.publish(new ListingSoldEvent(

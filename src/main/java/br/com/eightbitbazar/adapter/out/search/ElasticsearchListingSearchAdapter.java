@@ -1,6 +1,7 @@
 package br.com.eightbitbazar.adapter.out.search;
 
 import br.com.eightbitbazar.application.port.out.ListingSearchRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -16,6 +17,9 @@ import co.elastic.clients.elasticsearch._types.query_dsl.QueryBuilders;
 
 import java.util.List;
 
+import static net.logstash.logback.argument.StructuredArguments.kv;
+
+@Slf4j
 @Repository
 public class ElasticsearchListingSearchAdapter implements ListingSearchRepository {
 
@@ -27,62 +31,85 @@ public class ElasticsearchListingSearchAdapter implements ListingSearchRepositor
 
     @Override
     public Page<ListingSearchResult> search(SearchCriteria criteria, Pageable pageable) {
-        BoolQuery.Builder boolQuery = new BoolQuery.Builder();
+        try {
+            BoolQuery.Builder boolQuery = new BoolQuery.Builder();
 
-        // Only active listings
-        boolQuery.must(QueryBuilders.term(t -> t.field("status").value("ACTIVE")));
+            // Only active listings
+            boolQuery.must(QueryBuilders.term(t -> t.field("status").value("ACTIVE")));
 
-        // Exclude soft deleted listings
-        boolQuery.mustNot(QueryBuilders.exists(e -> e.field("deletedAt")));
+            // Exclude soft deleted listings
+            boolQuery.mustNot(QueryBuilders.exists(e -> e.field("deletedAt")));
 
-        // Full text search on name and description
-        if (criteria.query() != null && !criteria.query().isBlank()) {
-            boolQuery.must(QueryBuilders.multiMatch(m -> m
-                .fields("name^2", "description")
-                .query(criteria.query())
-                .fuzziness("AUTO")
-            ));
+            // Full text search on name and description
+            if (criteria.query() != null && !criteria.query().isBlank()) {
+                boolQuery.must(QueryBuilders.multiMatch(m -> m
+                    .fields("name^2", "description")
+                    .query(criteria.query())
+                    .fuzziness("AUTO")
+                ));
+            }
+
+            // Filter by type
+            if (criteria.type() != null && !criteria.type().isBlank()) {
+                boolQuery.filter(QueryBuilders.term(t -> t.field("type").value(criteria.type())));
+            }
+
+            // Filter by platform
+            if (criteria.platformId() != null) {
+                boolQuery.filter(QueryBuilders.term(t -> t.field("platformId").value(criteria.platformId())));
+            }
+
+            // Filter by manufacturer
+            if (criteria.manufacturerId() != null) {
+                boolQuery.filter(QueryBuilders.term(t -> t.field("manufacturerId").value(criteria.manufacturerId())));
+            }
+
+            Query query = NativeQuery.builder()
+                .withQuery(q -> q.bool(boolQuery.build()))
+                .withPageable(pageable)
+                .build();
+
+            SearchHits<ListingDocument> searchHits = elasticsearchOperations.search(query, ListingDocument.class);
+
+            List<ListingSearchResult> results = searchHits.getSearchHits().stream()
+                .map(SearchHit::getContent)
+                .map(this::toSearchResult)
+                .toList();
+
+            return new PageImpl<>(results, pageable, searchHits.getTotalHits());
+        } catch (Exception e) {
+            log.error("search.query.failed",
+                kv("error", e.getMessage() != null ? e.getMessage() : e.toString()),
+                e);
+            throw e;
         }
-
-        // Filter by type
-        if (criteria.type() != null && !criteria.type().isBlank()) {
-            boolQuery.filter(QueryBuilders.term(t -> t.field("type").value(criteria.type())));
-        }
-
-        // Filter by platform
-        if (criteria.platformId() != null) {
-            boolQuery.filter(QueryBuilders.term(t -> t.field("platformId").value(criteria.platformId())));
-        }
-
-        // Filter by manufacturer
-        if (criteria.manufacturerId() != null) {
-            boolQuery.filter(QueryBuilders.term(t -> t.field("manufacturerId").value(criteria.manufacturerId())));
-        }
-
-        Query query = NativeQuery.builder()
-            .withQuery(q -> q.bool(boolQuery.build()))
-            .withPageable(pageable)
-            .build();
-
-        SearchHits<ListingDocument> searchHits = elasticsearchOperations.search(query, ListingDocument.class);
-
-        List<ListingSearchResult> results = searchHits.getSearchHits().stream()
-            .map(SearchHit::getContent)
-            .map(this::toSearchResult)
-            .toList();
-
-        return new PageImpl<>(results, pageable, searchHits.getTotalHits());
     }
 
     @Override
     public void index(ListingSearchResult listing) {
-        ListingDocument document = toDocument(listing);
-        elasticsearchOperations.save(document);
+        try {
+            ListingDocument document = toDocument(listing);
+            elasticsearchOperations.save(document);
+        } catch (Exception e) {
+            log.error("search.index.failed",
+                kv("listingId", listing.id()),
+                kv("error", e.getMessage() != null ? e.getMessage() : e.toString()),
+                e);
+            throw e;
+        }
     }
 
     @Override
     public void delete(Long listingId) {
-        elasticsearchOperations.delete(String.valueOf(listingId), ListingDocument.class);
+        try {
+            elasticsearchOperations.delete(String.valueOf(listingId), ListingDocument.class);
+        } catch (Exception e) {
+            log.error("search.delete.failed",
+                kv("listingId", listingId),
+                kv("error", e.getMessage() != null ? e.getMessage() : e.toString()),
+                e);
+            throw e;
+        }
     }
 
     private ListingSearchResult toSearchResult(ListingDocument doc) {
