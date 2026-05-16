@@ -49,11 +49,13 @@ class NoDuplicateUserIdLogFieldsTest {
     }
 
     @Test
-    void textLogPatternsRenderUserIdOnlyWhenMdcHasValue() throws IOException {
+    void textLogPatternsRenderMdcIdentifiersOnlyWhenTheyHaveValues() throws IOException {
         Path logbackConfig = PROJECT_ROOT.resolve("src/main/resources/logback-spring.xml");
 
         assertThat(Files.readString(logbackConfig))
+            .contains("%replace(%X{correlationId}){'^(.+)$',' [correlationId=$1]'}")
             .contains("%replace(%X{userId}){'^(.+)$',' [userId=$1]'}")
+            .doesNotContain("[%X{correlationId}]")
             .doesNotContain("[userId=%X{userId}]");
     }
 
