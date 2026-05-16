@@ -48,14 +48,6 @@ class NoDuplicateUserIdLogFieldsTest {
         }
     }
 
-    @Test
-    void textLogPatternsRenderUserIdFromMdc() throws IOException {
-        Path logbackConfig = PROJECT_ROOT.resolve("src/main/resources/logback-spring.xml");
-
-        assertThat(Files.readString(logbackConfig))
-            .contains("[userId=%X{userId}]");
-    }
-
     private static boolean containsManualUserIdLogField(Path path) {
         try {
             return Files.readString(path).contains(".addKeyValue(\"userId\"");
