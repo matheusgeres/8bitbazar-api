@@ -19,8 +19,6 @@ import lombok.extern.slf4j.Slf4j;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static net.logstash.logback.argument.StructuredArguments.kv;
-
 @Slf4j
 public class CreateListing implements CreateListingUseCase {
 
@@ -89,10 +87,11 @@ public class CreateListing implements CreateListingUseCase {
 
         Listing savedListing = listingRepository.save(listing);
 
-        log.info("listing.created",
-            kv("listingId", savedListing.id().value()),
-            kv("sellerId", sellerId.value()),
-            kv("type", savedListing.type().name()));
+        log.atInfo()
+            .addKeyValue("listingId", savedListing.id().value())
+            .addKeyValue("sellerId", sellerId.value())
+            .addKeyValue("type", savedListing.type().name())
+            .log("listing.created");
 
         eventPublisher.publish(new ListingCreatedEvent(
             savedListing.id().value(),

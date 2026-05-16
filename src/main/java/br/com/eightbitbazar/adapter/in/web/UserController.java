@@ -20,8 +20,6 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
-import static net.logstash.logback.argument.StructuredArguments.kv;
-
 @Slf4j
 @RestController
 @RequestMapping("/api/v1/users")
@@ -119,7 +117,9 @@ public class UserController {
     @DeleteMapping("/me")
     public ResponseEntity<Void> deleteProfile(@AuthenticationPrincipal Jwt jwt) {
         UserId userId = new UserId(Long.parseLong(jwt.getSubject()));
-        log.warn("user.delete.requested", kv("userId", userId.value()));
+        log.atWarn()
+            .addKeyValue("userId", userId.value())
+            .log("user.delete.requested");
         deleteUserUseCase.execute(userId);
         return ResponseEntity.noContent().build();
     }

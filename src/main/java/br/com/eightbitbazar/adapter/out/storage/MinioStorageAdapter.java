@@ -11,8 +11,6 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 import java.io.InputStream;
 
-import static net.logstash.logback.argument.StructuredArguments.kv;
-
 @Slf4j
 @Component
 public class MinioStorageAdapter implements ImageStorage {
@@ -32,10 +30,11 @@ public class MinioStorageAdapter implements ImageStorage {
 
     @Override
     public String upload(String filename, InputStream inputStream, String contentType, long size) {
-        log.info("storage.upload.started",
-            kv("filename", filename),
-            kv("contentType", contentType),
-            kv("sizeBytes", size));
+        log.atInfo()
+            .addKeyValue("filename", filename)
+            .addKeyValue("contentType", contentType)
+            .addKeyValue("sizeBytes", size)
+            .log("storage.upload.started");
         try {
             PutObjectRequest request = PutObjectRequest.builder()
                 .bucket(bucket)
@@ -46,15 +45,17 @@ public class MinioStorageAdapter implements ImageStorage {
             s3Client.putObject(request, RequestBody.fromInputStream(inputStream, size));
 
             String url = getUrl(filename);
-            log.info("storage.upload.completed",
-                kv("filename", filename),
-                kv("sizeBytes", size));
+            log.atInfo()
+                .addKeyValue("filename", filename)
+                .addKeyValue("sizeBytes", size)
+                .log("storage.upload.completed");
             return url;
         } catch (Exception e) {
-            log.error("storage.upload.failed",
-                kv("filename", filename),
-                kv("error", e.getMessage() != null ? e.getMessage() : e.toString()),
-                e);
+            log.atError()
+                .addKeyValue("filename", filename)
+                .addKeyValue("error", e.getMessage() != null ? e.getMessage() : e.toString())
+                .setCause(e)
+                .log("storage.upload.failed");
             throw e;
         }
     }

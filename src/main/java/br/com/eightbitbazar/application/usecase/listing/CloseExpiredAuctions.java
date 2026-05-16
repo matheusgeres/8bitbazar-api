@@ -23,8 +23,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-import static net.logstash.logback.argument.StructuredArguments.kv;
-
 @Slf4j
 @Transactional
 public class CloseExpiredAuctions implements CloseExpiredAuctionsUseCase {
@@ -63,7 +61,9 @@ public class CloseExpiredAuctions implements CloseExpiredAuctionsUseCase {
             processed++;
         }
 
-        log.info("auction.closing.finished", kv("processed", processed));
+        log.atInfo()
+            .addKeyValue("processed", processed)
+            .log("auction.closing.finished");
 
         return processed;
     }
@@ -79,7 +79,9 @@ public class CloseExpiredAuctions implements CloseExpiredAuctionsUseCase {
         Listing expiredListing = listing.withStatus(ListingStatus.EXPIRED);
         listingRepository.save(expiredListing);
 
-        log.info("auction.closing.expired", kv("listingId", listing.id().value()));
+        log.atInfo()
+            .addKeyValue("listingId", listing.id().value())
+            .log("auction.closing.expired");
 
         eventPublisher.publish(new AuctionEndedEvent(
             listing.id().value(),
@@ -107,7 +109,11 @@ public class CloseExpiredAuctions implements CloseExpiredAuctionsUseCase {
         Listing soldListing = listing.withStatus(ListingStatus.SOLD).withQuantity(0);
         listingRepository.save(soldListing);
 
-        log.info("auction.closing.with_winner", kv("listingId", listing.id().value()), kv("winnerId", highestBid.userId().value()), kv("amount", highestBid.amount()));
+        log.atInfo()
+            .addKeyValue("listingId", listing.id().value())
+            .addKeyValue("winnerId", highestBid.userId().value())
+            .addKeyValue("amount", highestBid.amount())
+            .log("auction.closing.with_winner");
 
         eventPublisher.publish(new AuctionEndedEvent(
             listing.id().value(),

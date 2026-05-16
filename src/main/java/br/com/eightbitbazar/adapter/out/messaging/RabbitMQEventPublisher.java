@@ -5,7 +5,6 @@ import br.com.eightbitbazar.config.RabbitMQConfig;
 import br.com.eightbitbazar.domain.event.DomainEvent;
 import tools.jackson.databind.json.JsonMapper;
 import lombok.extern.slf4j.Slf4j;
-import static net.logstash.logback.argument.StructuredArguments.kv;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -36,9 +35,16 @@ public class RabbitMQEventPublisher implements EventPublisher {
 
             rabbitTemplate.send(RabbitMQConfig.EXCHANGE_NAME, event.eventType(), message);
 
-            log.info("event.published", kv("eventType", event.eventType()), kv("eventClass", event.getClass().getSimpleName()));
+            log.atInfo()
+                .addKeyValue("eventType", event.eventType())
+                .addKeyValue("eventClass", event.getClass().getSimpleName())
+                .log("event.published");
         } catch (Exception e) {
-            log.error("event.publish.failed", kv("eventType", event.eventType()), kv("error", e.getMessage() != null ? e.getMessage() : e.toString()), e);
+            log.atError()
+                .addKeyValue("eventType", event.eventType())
+                .addKeyValue("error", e.getMessage() != null ? e.getMessage() : e.toString())
+                .setCause(e)
+                .log("event.publish.failed");
         }
     }
 }

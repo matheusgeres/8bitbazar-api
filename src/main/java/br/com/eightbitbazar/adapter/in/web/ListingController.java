@@ -21,8 +21,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import static net.logstash.logback.argument.StructuredArguments.kv;
-
 @Slf4j
 @RestController
 @RequestMapping("/api/v1/listings")
@@ -93,7 +91,11 @@ public class ListingController {
             request.cashDiscountPercent()
         );
 
-        log.info("listing.create.requested", kv("sellerId", sellerId.value()), kv("type", input.type()), kv("name", input.name()));
+        log.atInfo()
+            .addKeyValue("sellerId", sellerId.value())
+            .addKeyValue("type", input.type())
+            .addKeyValue("name", input.name())
+            .log("listing.create.requested");
         CreateListingOutput output = createListingUseCase.execute(sellerId, input);
 
         ListingResponse response = new ListingResponse(
@@ -124,7 +126,10 @@ public class ListingController {
         @PathVariable Long id
     ) {
         UserId sellerId = new UserId(Long.parseLong(jwt.getSubject()));
-        log.warn("listing.delete.requested", kv("listingId", id), kv("sellerId", sellerId.value()));
+        log.atWarn()
+            .addKeyValue("listingId", id)
+            .addKeyValue("sellerId", sellerId.value())
+            .log("listing.delete.requested");
         deleteListingUseCase.execute(sellerId, new ListingId(id));
         return ResponseEntity.noContent().build();
     }
@@ -138,7 +143,10 @@ public class ListingController {
         UserId userId = new UserId(Long.parseLong(jwt.getSubject()));
         ListingId listingId = new ListingId(id);
 
-        log.info("listing.images.upload.requested", kv("listingId", id), kv("fileCount", files.size()));
+        log.atInfo()
+            .addKeyValue("listingId", id)
+            .addKeyValue("fileCount", files.size())
+            .log("listing.images.upload.requested");
         
         List<UploadListingImageUseCase.ImageUpload> images = new ArrayList<>();
         for (MultipartFile file : files) {
@@ -151,7 +159,10 @@ public class ListingController {
         }
 
         List<String> urls = uploadListingImageUseCase.execute(userId, listingId, images);
-        log.info("listing.images.uploaded", kv("listingId", id), kv("uploadedCount", urls.size()));
+        log.atInfo()
+            .addKeyValue("listingId", id)
+            .addKeyValue("uploadedCount", urls.size())
+            .log("listing.images.uploaded");
         return ResponseEntity.status(HttpStatus.CREATED).body(urls);
     }
 }

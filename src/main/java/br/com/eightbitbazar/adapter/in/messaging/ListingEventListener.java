@@ -17,7 +17,6 @@ import br.com.eightbitbazar.domain.platform.Platform;
 import br.com.eightbitbazar.domain.user.User;
 import tools.jackson.databind.json.JsonMapper;
 import lombok.extern.slf4j.Slf4j;
-import static net.logstash.logback.argument.StructuredArguments.kv;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
@@ -58,22 +57,32 @@ public class ListingEventListener {
         String eventType = message.getMessageProperties().getHeader("eventType");
         String body = new String(message.getBody());
 
-        log.info("listing.event.received", kv("eventType", eventType));
+        log.atInfo()
+            .addKeyValue("eventType", eventType)
+            .log("listing.event.received");
 
         try {
             switch (eventType) {
                 case "listing.created" -> handleListingCreated(jsonMapper.readValue(body, ListingCreatedEvent.class));
                 case "listing.deleted" -> handleListingDeleted(jsonMapper.readValue(body, ListingDeletedEvent.class));
                 case "listing.sold" -> handleListingSold(jsonMapper.readValue(body, ListingSoldEvent.class));
-                default -> log.warn("listing.event.unknown", kv("eventType", eventType));
+                default -> log.atWarn()
+                    .addKeyValue("eventType", eventType)
+                    .log("listing.event.unknown");
             }
         } catch (Exception e) {
-            log.error("listing.event.failed", kv("eventType", eventType), kv("error", e.getMessage() != null ? e.getMessage() : e.toString()), e);
+            log.atError()
+                .addKeyValue("eventType", eventType)
+                .addKeyValue("error", e.getMessage() != null ? e.getMessage() : e.toString())
+                .setCause(e)
+                .log("listing.event.failed");
         }
     }
 
     private void handleListingCreated(ListingCreatedEvent event) {
-        log.info("listing.created.processing", kv("listingId", event.listingId()));
+        log.atInfo()
+            .addKeyValue("listingId", event.listingId())
+            .log("listing.created.processing");
 
         Listing listing = listingRepository.findById(new ListingId(event.listingId()))
                 .orElseThrow(() -> new IllegalStateException("Listing not found: " + event.listingId()));
@@ -111,18 +120,28 @@ public class ListingEventListener {
         );
 
         listingSearchRepository.index(searchResult);
-        log.info("listing.index.completed", kv("listingId", event.listingId()));
+        log.atInfo()
+            .addKeyValue("listingId", event.listingId())
+            .log("listing.index.completed");
     }
 
     private void handleListingDeleted(ListingDeletedEvent event) {
-        log.info("listing.deleted.processing", kv("listingId", event.listingId()));
+        log.atInfo()
+            .addKeyValue("listingId", event.listingId())
+            .log("listing.deleted.processing");
         listingSearchRepository.delete(event.listingId());
-        log.info("listing.index.removed", kv("listingId", event.listingId()));
+        log.atInfo()
+            .addKeyValue("listingId", event.listingId())
+            .log("listing.index.removed");
     }
 
     private void handleListingSold(ListingSoldEvent event) {
-        log.info("listing.sold.processing", kv("listingId", event.listingId()));
+        log.atInfo()
+            .addKeyValue("listingId", event.listingId())
+            .log("listing.sold.processing");
         listingSearchRepository.delete(event.listingId());
-        log.info("listing.sold.index.removed", kv("listingId", event.listingId()));
+        log.atInfo()
+            .addKeyValue("listingId", event.listingId())
+            .log("listing.sold.index.removed");
     }
 }

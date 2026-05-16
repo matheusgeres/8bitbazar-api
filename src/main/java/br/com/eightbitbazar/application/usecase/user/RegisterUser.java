@@ -11,8 +11,6 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDateTime;
 
-import static net.logstash.logback.argument.StructuredArguments.kv;
-
 @Slf4j
 public class RegisterUser implements RegisterUserUseCase {
 
@@ -64,7 +62,9 @@ public class RegisterUser implements RegisterUserUseCase {
 
         User savedUser = userRepository.save(user);
 
-        log.info("user.registered", kv("userId", savedUser.id().value()));
+        log.atInfo()
+            .addKeyValue("userId", savedUser.id().value())
+            .log("user.registered");
 
         return new RegisterUserOutput(
             savedUser.id().value(),

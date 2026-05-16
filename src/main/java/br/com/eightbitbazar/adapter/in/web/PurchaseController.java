@@ -13,8 +13,6 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
-import static net.logstash.logback.argument.StructuredArguments.kv;
-
 @Slf4j
 @RestController
 @RequestMapping("/api/v1/listings/{listingId}/purchase")
@@ -35,9 +33,17 @@ public class PurchaseController {
         UserId buyerId = new UserId(Long.parseLong(jwt.getSubject()));
 
         DirectPurchaseInput input = new DirectPurchaseInput(listingId, request.paymentMethod());
-        log.info("purchase.requested", kv("listingId", listingId), kv("buyerId", buyerId.value()), kv("paymentMethod", request.paymentMethod()));
+        log.atInfo()
+            .addKeyValue("listingId", listingId)
+            .addKeyValue("buyerId", buyerId.value())
+            .addKeyValue("paymentMethod", request.paymentMethod())
+            .log("purchase.requested");
         DirectPurchaseOutput output = directPurchaseUseCase.execute(buyerId, input);
-        log.info("purchase.completed", kv("purchaseId", output.id()), kv("listingId", listingId), kv("finalAmount", output.finalAmount()));
+        log.atInfo()
+            .addKeyValue("purchaseId", output.id())
+            .addKeyValue("listingId", listingId)
+            .addKeyValue("finalAmount", output.finalAmount())
+            .log("purchase.completed");
 
         return ResponseEntity.status(HttpStatus.CREATED).body(output);
     }

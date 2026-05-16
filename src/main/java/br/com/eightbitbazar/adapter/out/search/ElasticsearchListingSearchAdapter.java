@@ -17,8 +17,6 @@ import co.elastic.clients.elasticsearch._types.query_dsl.QueryBuilders;
 
 import java.util.List;
 
-import static net.logstash.logback.argument.StructuredArguments.kv;
-
 @Slf4j
 @Repository
 public class ElasticsearchListingSearchAdapter implements ListingSearchRepository {
@@ -78,9 +76,10 @@ public class ElasticsearchListingSearchAdapter implements ListingSearchRepositor
 
             return new PageImpl<>(results, pageable, searchHits.getTotalHits());
         } catch (Exception e) {
-            log.error("search.query.failed",
-                kv("error", e.getMessage() != null ? e.getMessage() : e.toString()),
-                e);
+            log.atError()
+                .addKeyValue("error", e.getMessage() != null ? e.getMessage() : e.toString())
+                .setCause(e)
+                .log("search.query.failed");
             throw e;
         }
     }
@@ -91,10 +90,11 @@ public class ElasticsearchListingSearchAdapter implements ListingSearchRepositor
             ListingDocument document = toDocument(listing);
             elasticsearchOperations.save(document);
         } catch (Exception e) {
-            log.error("search.index.failed",
-                kv("listingId", listing.id()),
-                kv("error", e.getMessage() != null ? e.getMessage() : e.toString()),
-                e);
+            log.atError()
+                .addKeyValue("listingId", listing.id())
+                .addKeyValue("error", e.getMessage() != null ? e.getMessage() : e.toString())
+                .setCause(e)
+                .log("search.index.failed");
             throw e;
         }
     }
@@ -104,10 +104,11 @@ public class ElasticsearchListingSearchAdapter implements ListingSearchRepositor
         try {
             elasticsearchOperations.delete(String.valueOf(listingId), ListingDocument.class);
         } catch (Exception e) {
-            log.error("search.delete.failed",
-                kv("listingId", listingId),
-                kv("error", e.getMessage() != null ? e.getMessage() : e.toString()),
-                e);
+            log.atError()
+                .addKeyValue("listingId", listingId)
+                .addKeyValue("error", e.getMessage() != null ? e.getMessage() : e.toString())
+                .setCause(e)
+                .log("search.delete.failed");
             throw e;
         }
     }

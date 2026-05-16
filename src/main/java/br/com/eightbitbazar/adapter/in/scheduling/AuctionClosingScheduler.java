@@ -6,8 +6,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import static net.logstash.logback.argument.StructuredArguments.kv;
-
 @Slf4j
 @Component
 @ConditionalOnProperty(prefix = "app.auctions.closing", name = "enabled", havingValue = "true")
@@ -24,11 +22,14 @@ public class AuctionClosingScheduler {
         log.info("scheduler.auction_closing.started");
         try {
             int processed = closeExpiredAuctionsUseCase.execute();
-            log.info("scheduler.auction_closing.finished", kv("processed", processed));
+            log.atInfo()
+                .addKeyValue("processed", processed)
+                .log("scheduler.auction_closing.finished");
         } catch (Exception e) {
-            log.error("scheduler.auction_closing.failed",
-                kv("error", e.getMessage() != null ? e.getMessage() : e.toString()),
-                e);
+            log.atError()
+                .addKeyValue("error", e.getMessage() != null ? e.getMessage() : e.toString())
+                .setCause(e)
+                .log("scheduler.auction_closing.failed");
             throw e;
         }
     }

@@ -23,8 +23,6 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
 
-import static net.logstash.logback.argument.StructuredArguments.kv;
-
 @Slf4j
 @Transactional
 public class DirectPurchase implements DirectPurchaseUseCase {
@@ -82,7 +80,11 @@ public class DirectPurchase implements DirectPurchaseUseCase {
             finalAmount = price.subtract(discountApplied);
         }
 
-        log.info("purchase.placing", kv("listingId", input.listingId()), kv("buyerId", buyerId.value()), kv("paymentMethod", input.paymentMethod()));
+        log.atInfo()
+            .addKeyValue("listingId", input.listingId())
+            .addKeyValue("buyerId", buyerId.value())
+            .addKeyValue("paymentMethod", input.paymentMethod())
+            .log("purchase.placing");
 
         Purchase purchase = new Purchase(
             null,
@@ -108,7 +110,11 @@ public class DirectPurchase implements DirectPurchaseUseCase {
             : listing.withQuantity(newQuantity);
         listingRepository.save(updatedListing);
 
-        log.info("purchase.placed", kv("purchaseId", savedPurchase.id()), kv("listingId", savedPurchase.listingId().value()), kv("finalAmount", savedPurchase.finalAmount()));
+        log.atInfo()
+            .addKeyValue("purchaseId", savedPurchase.id())
+            .addKeyValue("listingId", savedPurchase.listingId().value())
+            .addKeyValue("finalAmount", savedPurchase.finalAmount())
+            .log("purchase.placed");
 
         if (isSold) {
             eventPublisher.publish(new ListingSoldEvent(
