@@ -86,7 +86,6 @@ public class PlaceBid implements PlaceBidUseCase {
 
         log.atInfo()
             .addKeyValue("listingId", input.listingId())
-            .addKeyValue("userId", userId.value())
             .addKeyValue("amount", input.amount())
             .log("bid.placing");
 
@@ -103,7 +102,6 @@ public class PlaceBid implements PlaceBidUseCase {
         log.atInfo()
             .addKeyValue("bidId", savedBid.id())
             .addKeyValue("listingId", savedBid.listingId().value())
-            .addKeyValue("userId", userId.value())
             .log("bid.saved");
 
         eventPublisher.publish(new BidPlacedEvent(

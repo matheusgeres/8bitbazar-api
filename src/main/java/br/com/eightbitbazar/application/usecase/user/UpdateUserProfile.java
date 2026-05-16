@@ -50,7 +50,6 @@ public class UpdateUserProfile implements UpdateUserProfileUseCase {
         User savedUser = userRepository.save(updatedUser);
 
         log.atInfo()
-            .addKeyValue("userId", savedUser.id().value())
             .log("user.profile.updated");
 
         return new UpdateUserProfileOutput(

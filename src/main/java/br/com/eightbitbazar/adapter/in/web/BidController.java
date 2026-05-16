@@ -38,7 +38,6 @@ public class BidController {
         PlaceBidInput input = new PlaceBidInput(listingId, request.amount());
         log.atInfo()
             .addKeyValue("listingId", listingId)
-            .addKeyValue("userId", userId.value())
             .addKeyValue("amount", request.amount())
             .log("bid.place.requested");
         PlaceBidOutput output = placeBidUseCase.execute(userId, input);
