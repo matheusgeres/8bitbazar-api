@@ -16,8 +16,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import static net.logstash.logback.argument.StructuredArguments.kv;
-
 @Slf4j
 public class UploadListingImage implements UploadListingImageUseCase {
 
@@ -65,9 +63,10 @@ public class UploadListingImage implements UploadListingImageUseCase {
             uploadedUrls.add(url);
         }
 
-        log.info("listing.images.uploaded",
-            kv("listingId", listingId.value()),
-            kv("count", uploadedUrls.size()));
+        log.atInfo()
+            .addKeyValue("listingId", listingId.value())
+            .addKeyValue("count", uploadedUrls.size())
+            .log("listing.images.uploaded");
 
         return uploadedUrls;
     }

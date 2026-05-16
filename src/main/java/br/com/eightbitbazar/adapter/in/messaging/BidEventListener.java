@@ -15,7 +15,6 @@ import br.com.eightbitbazar.domain.platform.Platform;
 import br.com.eightbitbazar.domain.user.User;
 import tools.jackson.databind.json.JsonMapper;
 import lombok.extern.slf4j.Slf4j;
-import static net.logstash.logback.argument.StructuredArguments.kv;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
@@ -56,21 +55,31 @@ public class BidEventListener {
         String eventType = message.getMessageProperties().getHeader("eventType");
         String body = new String(message.getBody());
 
-        log.info("bid.event.received", kv("eventType", eventType));
+        log.atInfo()
+            .addKeyValue("eventType", eventType)
+            .log("bid.event.received");
 
         try {
             if ("bid.placed".equals(eventType)) {
                 handleBidPlaced(jsonMapper.readValue(body, BidPlacedEvent.class));
             } else {
-                log.warn("bid.event.unknown", kv("eventType", eventType));
+                log.atWarn()
+                    .addKeyValue("eventType", eventType)
+                    .log("bid.event.unknown");
             }
         } catch (Exception e) {
-            log.error("bid.event.failed", kv("eventType", eventType), kv("error", e.getMessage() != null ? e.getMessage() : e.toString()), e);
+            log.atError()
+                .addKeyValue("eventType", eventType)
+                .addKeyValue("error", e.getMessage() != null ? e.getMessage() : e.toString())
+                .setCause(e)
+                .log("bid.event.failed");
         }
     }
 
     private void handleBidPlaced(BidPlacedEvent event) {
-        log.info("bid.event.processing", kv("listingId", event.listingId()));
+        log.atInfo()
+            .addKeyValue("listingId", event.listingId())
+            .log("bid.event.processing");
 
         Listing listing = listingRepository.findById(new ListingId(event.listingId()))
                 .orElseThrow(() -> new IllegalStateException("Listing not found: " + event.listingId()));
@@ -108,6 +117,8 @@ public class BidEventListener {
         );
 
         listingSearchRepository.index(searchResult);
-        log.info("bid.reindex.completed", kv("listingId", event.listingId()));
+        log.atInfo()
+            .addKeyValue("listingId", event.listingId())
+            .log("bid.reindex.completed");
     }
 }

@@ -25,8 +25,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-import static net.logstash.logback.argument.StructuredArguments.kv;
-
 @Slf4j
 @Transactional
 public class PlaceBid implements PlaceBidUseCase {
@@ -86,7 +84,11 @@ public class PlaceBid implements PlaceBidUseCase {
             return convertToPurchase(listing, userId, listingId);
         }
 
-        log.info("bid.placing", kv("listingId", input.listingId()), kv("userId", userId.value()), kv("amount", input.amount()));
+        log.atInfo()
+            .addKeyValue("listingId", input.listingId())
+            .addKeyValue("userId", userId.value())
+            .addKeyValue("amount", input.amount())
+            .log("bid.placing");
 
         Bid bid = new Bid(
             null,
@@ -98,7 +100,11 @@ public class PlaceBid implements PlaceBidUseCase {
 
         Bid savedBid = bidRepository.save(bid);
 
-        log.info("bid.saved", kv("bidId", savedBid.id()), kv("listingId", savedBid.listingId().value()), kv("userId", userId.value()));
+        log.atInfo()
+            .addKeyValue("bidId", savedBid.id())
+            .addKeyValue("listingId", savedBid.listingId().value())
+            .addKeyValue("userId", userId.value())
+            .log("bid.saved");
 
         eventPublisher.publish(new BidPlacedEvent(
             savedBid.id(),
@@ -139,7 +145,12 @@ public class PlaceBid implements PlaceBidUseCase {
         Listing soldListing = listing.withStatus(ListingStatus.SOLD).withQuantity(0);
         listingRepository.save(soldListing);
 
-        log.info("bid.converted_to_purchase", kv("listingId", listingId.value()), kv("buyerId", buyerId.value()), kv("purchaseId", savedPurchase.id()), kv("amount", price));
+        log.atInfo()
+            .addKeyValue("listingId", listingId.value())
+            .addKeyValue("buyerId", buyerId.value())
+            .addKeyValue("purchaseId", savedPurchase.id())
+            .addKeyValue("amount", price)
+            .log("bid.converted_to_purchase");
 
         // Publish events
         eventPublisher.publish(new ListingSoldEvent(

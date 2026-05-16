@@ -26,8 +26,6 @@ import org.springframework.web.bind.annotation.*;
 import java.time.Instant;
 import java.util.List;
 
-import static net.logstash.logback.argument.StructuredArguments.kv;
-
 @Slf4j
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -110,7 +108,9 @@ public class AuthController {
             .build();
 
         String token = jwtEncoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
-        log.info("auth.login.success", kv("userId", user.id().value()));
+        log.atInfo()
+            .addKeyValue("userId", user.id().value())
+            .log("auth.login.success");
 
         LoginResponse response = new LoginResponse(
             token,

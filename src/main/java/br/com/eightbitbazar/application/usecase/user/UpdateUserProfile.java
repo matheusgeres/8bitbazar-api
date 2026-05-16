@@ -8,8 +8,6 @@ import br.com.eightbitbazar.domain.user.User;
 import br.com.eightbitbazar.domain.user.UserId;
 import lombok.extern.slf4j.Slf4j;
 
-import static net.logstash.logback.argument.StructuredArguments.kv;
-
 @Slf4j
 public class UpdateUserProfile implements UpdateUserProfileUseCase {
 
@@ -51,7 +49,9 @@ public class UpdateUserProfile implements UpdateUserProfileUseCase {
 
         User savedUser = userRepository.save(updatedUser);
 
-        log.info("user.profile.updated", kv("userId", savedUser.id().value()));
+        log.atInfo()
+            .addKeyValue("userId", savedUser.id().value())
+            .log("user.profile.updated");
 
         return new UpdateUserProfileOutput(
             savedUser.id().value(),

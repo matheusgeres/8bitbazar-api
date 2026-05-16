@@ -9,8 +9,6 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDateTime;
 
-import static net.logstash.logback.argument.StructuredArguments.kv;
-
 @Slf4j
 public class DeleteUser implements DeleteUserUseCase {
 
@@ -26,11 +24,15 @@ public class DeleteUser implements DeleteUserUseCase {
             .filter(u -> !u.isDeleted())
             .orElseThrow(() -> new NotFoundException("User not found"));
 
-        log.warn("user.deleting", kv("userId", userId.value()));
+        log.atWarn()
+            .addKeyValue("userId", userId.value())
+            .log("user.deleting");
 
         User deletedUser = user.withDeletedAt(LocalDateTime.now());
         userRepository.save(deletedUser);
 
-        log.warn("user.deleted", kv("userId", userId.value()));
+        log.atWarn()
+            .addKeyValue("userId", userId.value())
+            .log("user.deleted");
     }
 }

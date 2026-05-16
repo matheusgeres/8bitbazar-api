@@ -16,8 +16,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 
-import static net.logstash.logback.argument.StructuredArguments.kv;
-
 @Slf4j
 @RestController
 @RequestMapping("/api/v1/listings/{listingId}/bids")
@@ -38,9 +36,17 @@ public class BidController {
         UserId userId = new UserId(Long.parseLong(jwt.getSubject()));
 
         PlaceBidInput input = new PlaceBidInput(listingId, request.amount());
-        log.info("bid.place.requested", kv("listingId", listingId), kv("userId", userId.value()), kv("amount", request.amount()));
+        log.atInfo()
+            .addKeyValue("listingId", listingId)
+            .addKeyValue("userId", userId.value())
+            .addKeyValue("amount", request.amount())
+            .log("bid.place.requested");
         PlaceBidOutput output = placeBidUseCase.execute(userId, input);
-        log.info("bid.placed", kv("bidId", output.id()), kv("listingId", listingId), kv("convertedToPurchase", output.convertedToPurchase()));
+        log.atInfo()
+            .addKeyValue("bidId", output.id())
+            .addKeyValue("listingId", listingId)
+            .addKeyValue("convertedToPurchase", output.convertedToPurchase())
+            .log("bid.placed");
 
         return ResponseEntity.status(HttpStatus.CREATED).body(output);
     }

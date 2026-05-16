@@ -14,8 +14,6 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDateTime;
 
-import static net.logstash.logback.argument.StructuredArguments.kv;
-
 @Slf4j
 public class DeleteListing implements DeleteListingUseCase {
 
@@ -43,9 +41,10 @@ public class DeleteListing implements DeleteListingUseCase {
 
         listingRepository.save(deletedListing);
 
-        log.warn("listing.deleted",
-            kv("listingId", listingId.value()),
-            kv("sellerId", sellerId.value()));
+        log.atWarn()
+            .addKeyValue("listingId", listingId.value())
+            .addKeyValue("sellerId", sellerId.value())
+            .log("listing.deleted");
 
         eventPublisher.publish(new ListingDeletedEvent(
             listingId.value(),

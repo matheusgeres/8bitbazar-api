@@ -4,7 +4,6 @@ import br.com.eightbitbazar.config.RabbitMQConfig;
 import br.com.eightbitbazar.domain.event.PurchaseCompletedEvent;
 import io.micrometer.core.instrument.Counter;
 import lombok.extern.slf4j.Slf4j;
-import static net.logstash.logback.argument.StructuredArguments.kv;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
@@ -33,9 +32,15 @@ public class PurchaseEventListener {
         try {
             PurchaseCompletedEvent event = jsonMapper.readValue(message.getBody(), PurchaseCompletedEvent.class);
             purchaseEventsConsumedCounter.increment();
-            log.info("purchase.event.processed", kv("purchaseId", event.purchaseId()));
+            log.atInfo()
+                .addKeyValue("purchaseId", event.purchaseId())
+                .log("purchase.event.processed");
         } catch (Exception e) {
-            log.error("purchase.event.failed", kv("eventType", eventType), kv("error", e.getMessage() != null ? e.getMessage() : e.toString()), e);
+            log.atError()
+                .addKeyValue("eventType", eventType)
+                .addKeyValue("error", e.getMessage() != null ? e.getMessage() : e.toString())
+                .setCause(e)
+                .log("purchase.event.failed");
         }
     }
 }

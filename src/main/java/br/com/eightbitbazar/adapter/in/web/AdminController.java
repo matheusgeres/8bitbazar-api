@@ -13,8 +13,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-import static net.logstash.logback.argument.StructuredArguments.kv;
-
 @Slf4j
 @RestController
 @RequestMapping("/api/v1/admin")
@@ -41,7 +39,10 @@ public class AdminController {
     @PostMapping("/platforms")
     public ResponseEntity<PlatformResponse> createPlatform(@Valid @RequestBody CreateRequest request) {
         Platform platform = createPlatformUseCase.execute(request.name());
-        log.info("admin.platform.created", kv("platformId", platform.id()), kv("name", platform.name()));
+        log.atInfo()
+            .addKeyValue("platformId", platform.id())
+            .addKeyValue("name", platform.name())
+            .log("admin.platform.created");
         return ResponseEntity.status(HttpStatus.CREATED)
             .body(new PlatformResponse(platform.id(), platform.name()));
     }
@@ -57,7 +58,10 @@ public class AdminController {
     @PostMapping("/manufacturers")
     public ResponseEntity<ManufacturerResponse> createManufacturer(@Valid @RequestBody CreateRequest request) {
         Manufacturer manufacturer = createManufacturerUseCase.execute(request.name());
-        log.info("admin.manufacturer.created", kv("manufacturerId", manufacturer.id()), kv("name", manufacturer.name()));
+        log.atInfo()
+            .addKeyValue("manufacturerId", manufacturer.id())
+            .addKeyValue("name", manufacturer.name())
+            .log("admin.manufacturer.created");
         return ResponseEntity.status(HttpStatus.CREATED)
             .body(new ManufacturerResponse(manufacturer.id(), manufacturer.name()));
     }

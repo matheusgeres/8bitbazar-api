@@ -6,7 +6,6 @@ import br.com.eightbitbazar.domain.user.Address;
 import br.com.eightbitbazar.domain.user.Role;
 import br.com.eightbitbazar.domain.user.User;
 import lombok.extern.slf4j.Slf4j;
-import static net.logstash.logback.argument.StructuredArguments.kv;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
@@ -52,6 +51,8 @@ public class DefaultAdminInitializer implements ApplicationRunner {
         );
 
         userRepository.save(admin);
-        log.info("admin.default.created", kv("email", DEFAULT_EMAIL));
+        log.atInfo()
+            .addKeyValue("email", DEFAULT_EMAIL)
+            .log("admin.default.created");
     }
 }
