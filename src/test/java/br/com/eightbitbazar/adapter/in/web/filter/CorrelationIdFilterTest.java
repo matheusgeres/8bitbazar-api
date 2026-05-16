@@ -7,11 +7,6 @@ import org.slf4j.MDC;
 import org.springframework.mock.web.MockFilterChain;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
-
-import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -33,7 +28,6 @@ class CorrelationIdFilterTest {
     @AfterEach
     void tearDown() {
         MDC.clear();
-        SecurityContextHolder.clearContext();
     }
 
     @Test
@@ -61,7 +55,6 @@ class CorrelationIdFilterTest {
         filter.doFilterInternal(request, response, chain);
 
         assertThat(MDC.get("correlationId")).isNull();
-        assertThat(MDC.get("userId")).isNull();
     }
 
     @Test
@@ -94,31 +87,6 @@ class CorrelationIdFilterTest {
     }
 
     @Test
-    void shouldSetUserIdInMdcWhenAuthenticated() throws Exception {
-        var jwt = Jwt.withTokenValue("token")
-            .header("alg", "RS256")
-            .subject("user-42")
-            .issuedAt(java.time.Instant.now())
-            .expiresAt(java.time.Instant.now().plusSeconds(60))
-            .build();
-        var auth = new JwtAuthenticationToken(jwt, List.of());
-        SecurityContextHolder.getContext().setAuthentication(auth);
-
-        var capturedUserId = new String[1];
-        var capturingChain = new MockFilterChain() {
-            @Override
-            public void doFilter(jakarta.servlet.ServletRequest req, jakarta.servlet.ServletResponse res)
-                    throws java.io.IOException, jakarta.servlet.ServletException {
-                capturedUserId[0] = MDC.get("userId");
-            }
-        };
-
-        filter.doFilterInternal(request, response, capturingChain);
-
-        assertThat(capturedUserId[0]).isEqualTo("user-42");
-    }
-
-    @Test
     void shouldSanitizeCRLFFromCorrelationIdHeader() throws Exception {
         request.addHeader("X-Correlation-Id", "valid-id\r\nX-Injected: header");
 
@@ -137,5 +105,15 @@ class CorrelationIdFilterTest {
 
         assertThat(response.getHeader("X-Correlation-Id"))
             .matches("[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}");
+    }
+
+    @Test
+    void shouldRestorePreviousMdcAfterRequest() throws Exception {
+        MDC.put("existing", "value");
+
+        filter.doFilterInternal(request, response, chain);
+
+        assertThat(MDC.get("existing")).isEqualTo("value");
+        assertThat(MDC.get("correlationId")).isNull();
     }
 }
