@@ -117,9 +117,7 @@ public class UserController {
     @DeleteMapping("/me")
     public ResponseEntity<Void> deleteProfile(@AuthenticationPrincipal Jwt jwt) {
         UserId userId = new UserId(Long.parseLong(jwt.getSubject()));
-        log.atWarn()
-            .addKeyValue("userId", userId.value())
-            .log("user.delete.requested");
+        log.atWarn().log("user.delete.requested");
         deleteUserUseCase.execute(userId);
         return ResponseEntity.noContent().build();
     }

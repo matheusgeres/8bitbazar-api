@@ -25,14 +25,12 @@ public class DeleteUser implements DeleteUserUseCase {
             .orElseThrow(() -> new NotFoundException("User not found"));
 
         log.atWarn()
-            .addKeyValue("userId", userId.value())
             .log("user.deleting");
 
         User deletedUser = user.withDeletedAt(LocalDateTime.now());
         userRepository.save(deletedUser);
 
         log.atWarn()
-            .addKeyValue("userId", userId.value())
             .log("user.deleted");
     }
 }
