@@ -216,6 +216,47 @@ Authorization: Bearer <access-token>
 
 > **Nota:** o scheduler de fechamento de leilões é desabilitado por padrão (`app.auctions.closing.enabled=false`). Para habilitá-lo em ambiente local, defina `app.auctions.closing.enabled=true` em `application.yml` ou via variável de ambiente.
 
+## ✅ CI e proteção da `main`
+
+Implementado para a [issue #19](https://github.com/matheusgeres/8bitbazar-api/issues/19).
+O workflow `.github/workflows/ci.yml` executa em pull requests direcionados à `main`
+e em pushes para `main`. O único check obrigatório é `build`: usa Java 25,
+o wrapper Gradle e `./gradlew clean build --no-daemon --console=plain`, incluindo
+toda a suíte de testes e a geração dos artefatos da aplicação.
+
+O runner Ubuntu usa Docker. MySQL, Elasticsearch, MinIO e RabbitMQ são iniciados
+pela suíte existente com Testcontainers; não é necessário subir o Compose no CI.
+Como MinIO Community passou a ser distribuído somente como código-fonte, a fixture
+constrói sua imagem usando `src/test/resources/minio/Dockerfile`, com commit oficial
+fixado da versão `RELEASE.2025-09-07T16-13-09Z`. A primeira execução precisa de acesso
+à internet para baixar as imagens-base e dependências Go; Docker reutiliza o cache
+de camadas nas execuções seguintes.
+Os relatórios de teste ficam no artifact `test-reports` por 7 dias, inclusive quando
+o build falha. Para reproduzir localmente, use Java 25 e Docker disponível:
+
+```bash
+./gradlew clean build --no-daemon --console=plain
+```
+
+Fluxo de contribuição:
+
+1. Abra um PR para `main`; o check `build` deve terminar com sucesso.
+2. Mantenha a branch atualizada com `main` e resolva todas as conversas do PR.
+3. Obtenha 1 approval válido. Novos commits invalidam approvals anteriores.
+4. Faça o merge somente depois desses requisitos. Check falhando, pendente ou
+   ausente bloqueia o merge normal; bypass administrativo existente não foi alterado.
+
+A proteção clássica da `main` exige `build` com atualização da branch obrigatória
+(`strict=true`). Force push e exclusão continuam desabilitados. Não foram adicionadas
+exigências de assinatura, histórico linear, segundo approval ou pipeline de deploy.
+O nome `build` deve permanecer estável e exclusivo entre workflows, pois está
+referenciado na proteção remota da branch.
+
+Após publicar o workflow, valide em um PR real que `build` executa automaticamente,
+que falhas bloqueiam o merge e que sucesso, approval válido, branch atualizada e
+conversas resolvidas permitem o merge. Essa validação depende do GitHub Actions;
+o build local não substitui essa confirmação.
+
 ## 📄 Licença
 
 Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
