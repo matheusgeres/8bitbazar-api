@@ -9,6 +9,7 @@ import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.containers.RabbitMQContainer;
 import org.testcontainers.elasticsearch.ElasticsearchContainer;
+import org.testcontainers.images.builder.ImageFromDockerfile;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
@@ -39,7 +40,8 @@ public abstract class IntegrationTestBase {
             .withPassword("test")
             .withReuse(true);
 
-        minio = new GenericContainer<>(DockerImageName.parse("minio/minio"))
+        minio = new GenericContainer<>(new ImageFromDockerfile()
+            .withFileFromClasspath("Dockerfile", "minio/Dockerfile"))
             .withExposedPorts(9000)
             .withEnv("MINIO_ROOT_USER", "minioadmin")
             .withEnv("MINIO_ROOT_PASSWORD", "minioadmin")
